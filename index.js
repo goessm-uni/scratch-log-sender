@@ -3,6 +3,6 @@ const loggingWs = require('./src/logging-websocket')
 
 module.exports = {
     userEventLog: userEventLog,
-    wsOpen: loggingWs.isOpen(),
-    wsSaveError: loggingWs.hasSaveError()
+    wsOpen: loggingWs.isOpen,
+    wsSaveError: loggingWs.hasSaveError
 };
