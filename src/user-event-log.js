@@ -52,6 +52,15 @@ const logListenEvent = function (event, blocks) {
 };
 
 /**
+ * Log control events like greenFlag and stopAll
+ * @param {string} type Event type
+ * @param {Runtime} runtime The scratch VM runtime
+ */
+const logControlEvent = function (type, runtime) {
+    logUserEvent(type, null, runtime);
+}
+
+/**
  * Send current log buffer over websocket connection
  */
 const sendLog = function () {
@@ -79,5 +88,6 @@ module.exports = {
     logListenEvent: logListenEvent,
     logUserEvent: logUserEvent,
     logUserKeyEvent: logUserKeyEvent,
+    logControlEvent: logControlEvent,
     getEventLog: getEventLog
 };
