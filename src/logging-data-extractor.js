@@ -28,7 +28,7 @@ const extractEventData = function (event, blocks) {
     const block = blocks._blocks[event.blockId];
     if (block) {
         data.blockType = block.opcode;
-        data.eventBlock = block;
+        data.blockId = event.blockId;
     }
 
     switch (event.type) {

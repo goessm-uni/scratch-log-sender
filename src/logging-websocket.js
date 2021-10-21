@@ -1,10 +1,16 @@
 const wsURL = 'ws://localhost:8000/logging'; // local
 // const wsURL = 'wss://scratch-log-endpoint.herokuapp.com/logging'; // heroku
 
+const selfConnect = true;
 const authKey = 'notthatsecret';
 
 let ws;
 let saveError = false;
+let userId;
+
+const setUserId = function (id) {
+    userId = id;
+};
 
 const handleResponse = function (msg) {
     try {
@@ -13,11 +19,12 @@ const handleResponse = function (msg) {
         console.log('message received was not valid JSON');
         return;
     }
-    if (msg?.success) {
-        saveError = false;
-    } else {
-        console.log(`Actions not saved on endpoint: ${msg.error}`);
-        saveError = true;
+    if ('success' in msg) {
+        saveError = !msg.success;
+        if (saveError) console.log(`Actions not saved on endpoint: ${msg.error}`);
+    }
+    if ('newUserId' in msg) {
+        userId = msg.newUserId;
     }
 
 };
@@ -25,7 +32,8 @@ const handleResponse = function (msg) {
 const connectWebSocket = function () {
     if (ws?.readyState === WebSocket.OPEN) return;
     console.log("creating new websocket");
-    ws = new WebSocket(wsURL);
+    let fullURL = userId ? (wsURL + `/?userId=${userId}`) : wsURL;
+    ws = new WebSocket(fullURL);
 
     ws.onopen = function () {
         console.log('WebSocket Connected');
@@ -49,7 +57,7 @@ const connectWebSocket = function () {
     };
 };
 
-connectWebSocket();
+if (selfConnect) connectWebSocket();
 
 const isOpen = function () {
     return ws?.readyState === WebSocket.OPEN;
@@ -88,6 +96,7 @@ const sendActions = function (actions) {
 };
 
 module.exports = {
+    setUserId: setUserId,
     sendActions: sendActions,
     sendString: sendString,
     isOpen: isOpen,
