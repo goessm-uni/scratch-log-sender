@@ -1,5 +1,5 @@
-const wsURL = 'ws://localhost:8000/logging'; // local
-// const wsURL = 'wss://scratch-log-endpoint.herokuapp.com/logging'; // heroku
+// const wsURL = 'ws://localhost:8000/logging'; // local
+const wsURL = 'wss://scratch-log-endpoint.herokuapp.com/logging'; // heroku
 
 const selfConnect = true;
 const authKey = 'notthatsecret';
