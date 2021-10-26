@@ -4,6 +4,7 @@
  */
 const ws = require('./logging-websocket');
 const extractor = require('./logging-data-extractor');
+const denoiser = require('./denoiser');
 
 const eventLog = [];
 const sendInterval = 10000;
@@ -47,6 +48,10 @@ const logUserKeyEvent = function (_eventType, _eventData) {
  * @param {Blocks} blocks Blocks object
  */
 const logListenEvent = function (event, blocks) {
+    if (denoiser.eventIsNoise(event, blocks)) {
+        // Event is considered noise, ignore
+        return;
+    }
     const eventData = extractor.extractEventData(event, blocks);
     logUserEvent(event.type, eventData, blocks.runtime);
 };
