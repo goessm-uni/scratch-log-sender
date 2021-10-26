@@ -10,10 +10,6 @@ let taskId = url.searchParams.get('task');
 let ws;
 let saveError = false;
 
-const setUserId = function (id) {
-    userId = id;
-};
-
 const handleResponse = function (msg) {
     try {
         msg = JSON.parse(msg);
@@ -98,7 +94,6 @@ const sendActions = function (actions) {
 };
 
 module.exports = {
-    setUserId: setUserId,
     sendActions: sendActions,
     sendString: sendString,
     isOpen: isOpen,
