@@ -3,10 +3,12 @@ const wsURL = 'wss://scratch-log-endpoint.herokuapp.com/logging'; // heroku
 
 const selfConnect = true;
 const authKey = 'notthatsecret';
+const url = new URL(window.location.href);
 
+let userId = url.searchParams.get('user');
+let taskId = url.searchParams.get('task');
 let ws;
 let saveError = false;
-let userId;
 
 const setUserId = function (id) {
     userId = id;
