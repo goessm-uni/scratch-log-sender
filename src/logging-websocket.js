@@ -8,55 +8,12 @@ const url = new URL(window.location.href);
 let userId = url.searchParams.get('user');
 let taskId = url.searchParams.get('task');
 let ws;
+let reconnectTimer;
 let saveError = false;
 
-const handleResponse = function (msg) {
-    try {
-        msg = JSON.parse(msg);
-    } catch (e) {
-        console.log('message received was not valid JSON');
-        return;
-    }
-    if ('success' in msg) {
-        saveError = !msg.success;
-        if (saveError) console.log(`Actions not saved on endpoint: ${msg.error}`);
-    }
-    if ('newUserId' in msg) {
-        userId = msg.newUserId;
-    }
-
-};
-
-const connectWebSocket = function () {
-    if (ws?.readyState === WebSocket.OPEN) return;
-    console.log("creating new websocket");
-    let fullURL = userId ? (wsURL + `/?userId=${userId}`) : wsURL;
-    ws = new WebSocket(fullURL);
-
-    ws.onopen = function () {
-        console.log('WebSocket Connected');
-    };
-
-    ws.onmessage = function (ev) {
-        console.log(`Received ws message: ${ev.data}`);
-        handleResponse(ev.data);
-    };
-
-    ws.onerror = function (ev) {
-        console.error('WebSocket error:', ev);
-    };
-
-    ws.onclose = function (ev) {
-        console.log(`Websocket closed: ${ev.code}  ${ev.reason}`);
-        // Retry
-        const retryDelay = 5000;
-        console.log(`retrying websocket connection in ${retryDelay}ms`);
-        setTimeout(connectWebSocket, retryDelay);
-    };
-};
-
-if (selfConnect) connectWebSocket();
-
+/**
+ * @returns {boolean} Whether the websocket is open and ready
+ */
 const isOpen = function () {
     return ws?.readyState === WebSocket.OPEN;
 };
@@ -90,8 +47,72 @@ const sendActions = function (actions) {
     payload.authKey = authKey;
     payload.userActions = actions;
     ws.send(JSON.stringify(payload));
+    // Simple isOpen check to see if message was (probably) sent.
+    // Possible to implement awaiting response here instead.
     return isOpen();
 };
+
+/**
+ * React to messages / responses from the logging endpoint
+ * @param msg Message that's hopefully from the logging endpoint
+ */
+const handleResponse = function (msg) {
+    try {
+        msg = JSON.parse(msg);
+    } catch (e) {
+        console.log('message received was not valid JSON');
+        return;
+    }
+    if ('success' in msg) {
+        saveError = !msg.success;
+        if (saveError) console.log(`Actions not saved on endpoint: ${msg.error}`);
+    }
+    if ('newUserId' in msg) {
+        userId = msg.newUserId;
+    }
+
+};
+
+/**
+ * Creates new ws connection to logging endpoint, automatically reconnects on close.
+ * Doesn't change or redo existing connection.
+ */
+const connectWebSocket = function () {
+    clearInterval(reconnectTimer);
+    reconnectTimer = null;
+    // Don't reconnect healthy connection
+    if (isOpen()) return;
+
+    console.log("creating new websocket");
+    let fullURL = userId ? (wsURL + `/?userId=${userId}`) : wsURL;
+    ws = new WebSocket(fullURL);
+
+    ws.onopen = function () {
+        console.log('WebSocket Connected');
+    };
+
+    ws.onmessage = function (ev) {
+        console.log(`Received ws message: ${ev.data}`);
+        handleResponse(ev.data);
+    };
+
+    ws.onerror = function (ev) {
+        console.error('WebSocket error:', ev);
+    };
+
+    ws.onclose = function (ev) {
+        console.log(`Websocket closed: ${ev.code}  ${ev.reason}`);
+        // Retry
+        const retryDelay = 5000;
+        if (!reconnectTimer) {
+            console.log(`retrying websocket connection in ${retryDelay}ms`);
+            reconnectTimer = setTimeout(connectWebSocket, retryDelay);
+        }
+    };
+};
+
+// Create connection automatically on load.
+if (selfConnect) connectWebSocket();
 
 module.exports = {
     sendActions: sendActions,
