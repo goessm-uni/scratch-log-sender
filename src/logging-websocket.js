@@ -1,9 +1,12 @@
 // const wsURL = 'ws://localhost:8000/logging'; // local
 const wsURL = 'wss://scratch-log-endpoint.herokuapp.com/logging'; // heroku
 
+// Set this to false to disable websocket connections for debugging
 const selfConnect = true;
+
 const authKey = 'notthatsecret';
 const url = new URL(window.location.href);
+const retryDelay = 5000;
 
 let userId = url.searchParams.get('user');
 let taskId = url.searchParams.get('task');
@@ -103,7 +106,6 @@ const connectWebSocket = function () {
     ws.onclose = function (ev) {
         console.log(`Websocket closed: ${ev.code}  ${ev.reason}`);
         // Retry
-        const retryDelay = 5000;
         if (!reconnectTimer) {
             console.log(`retrying websocket connection in ${retryDelay}ms`);
             reconnectTimer = setTimeout(connectWebSocket, retryDelay);

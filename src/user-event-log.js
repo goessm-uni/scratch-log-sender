@@ -18,7 +18,6 @@ let sendBuffer = [];
  * @param {Runtime} runtime The Scratch VM runtime for code state extraction
  */
 const logUserEvent = function (eventType, eventData, runtime) {
-    // console.log(`logging user action: ${eventType}`);
     const time = new Date().getTime();
     const actionLog = {
         timestamp: time,
@@ -26,6 +25,8 @@ const logUserEvent = function (eventType, eventData, runtime) {
         data: eventData,
         codeState: extractor.extractCodeState(runtime)
     };
+    // console.log(`logging user action: ${eventType}`);
+    // console.log(eventData)
     eventLog.push(actionLog);
 };
 
@@ -53,6 +54,7 @@ const logListenEvent = function (event, blocks) {
         return;
     }
     const eventData = extractor.extractEventData(event, blocks);
+    // console.log(event)
     logUserEvent(event.type, eventData, blocks.runtime);
 };
 
@@ -71,7 +73,7 @@ const logControlEvent = function (type, runtime) {
 const sendLog = function () {
     if (eventLog.length === 0 && sendBuffer.length === 0) return;
     if (!ws.isOpen()) {
-        console.log('tried to send log, but ws connection not ready.');
+        // console.log('tried to send log, but ws connection not ready.');
         return;
     }
     // Move actions from log to buffer
