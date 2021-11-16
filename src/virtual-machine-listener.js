@@ -19,8 +19,8 @@ const listenToVM = function (vm) {
     vm.emit = CustomEmitter.prototype.emit
 
     vm.on('*', (type, ...args) => {
-        console.log(`VM event: ${type}`)
-        console.log(args)
+        // console.log(`VM event: ${type}`)
+        // console.log(args)
     })
 
     vm.on('TURBO_MODE_ON', () => {
