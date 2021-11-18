@@ -260,7 +260,7 @@ const _getBlockDataFromEvent = function (event, blocks) {
  * @returns {[]} Array of Sprite objects containing the _blocks block state.
  */
 const extractCodeState = function (runtime) {
-    if (!runtime) return [];
+    if (!runtime) return null;
     const sprites = [];
     for (const target of runtime.targets) {
         if (!target?.sprite) continue;

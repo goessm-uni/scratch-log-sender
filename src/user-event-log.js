@@ -23,7 +23,7 @@ const logUserEvent = function (eventType, eventData, runtime) {
         timestamp: time,
         type: eventType,
         data: eventData,
-        codeState: extractor.extractCodeState(runtime)
+        codeState: runtime ? extractor.extractCodeState(runtime) : null
     };
     // console.log(`logging user action: ${eventType}`);
     // console.log(eventData)

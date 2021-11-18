@@ -24,13 +24,13 @@ const listenToVM = function (vm) {
     })
 
     vm.on('TURBO_MODE_ON', () => {
-        userEventLog.logControlEvent('TURBO_MODE_ON', vm.runtime)
+        userEventLog.logControlEvent('turbo_mode_on', vm.runtime)
     })
     vm.on('TURBO_MODE_OFF', () => {
-        userEventLog.logControlEvent('TURBO_MODE_OFF', vm.runtime)
+        userEventLog.logControlEvent('turbo_mode_off', vm.runtime)
     })
     vm.on('RUNTIME_STARTED', () => {
-        userEventLog.logControlEvent('RUNTIME_STARTED', vm.runtime)
+        userEventLog.logControlEvent('runtime_started', null)
     })
 };
 
