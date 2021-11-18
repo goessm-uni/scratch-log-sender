@@ -31,18 +31,6 @@ const logUserEvent = function (eventType, eventData, runtime) {
 };
 
 /**
- * Call when a user key / mouse event occurs to add it to log.
- * @param {string} eventType String description of event type
- * @param {object} eventData Additional event data
- * @param {object} codeState The _blocks object representing the current code state
- */
-// eslint-disable-next-line no-unused-vars
-const logUserKeyEvent = function (_eventType, _eventData) {
-    // Ignore key events for now
-    return;
-};
-
-/**
  * Call with a blockly listen event. Extracts relevant information then logs a user event.
  * Tries to filter noise / non-user events.
  * @param {Blockly.Event} event A Blockly listen event
@@ -53,9 +41,10 @@ const logListenEvent = function (event, blocks) {
         // Event is considered noise, ignore
         return;
     }
-    const eventData = extractor.extractEventData(event, blocks);
+    const extractorResult = extractor.extractEventData(event, blocks);
+
     // console.log(event)
-    logUserEvent(event.type, eventData, blocks.runtime);
+    logUserEvent(extractorResult.eventType, extractorResult.eventData, blocks.runtime);
 };
 
 /**
@@ -64,6 +53,7 @@ const logListenEvent = function (event, blocks) {
  * @param {Runtime} runtime The scratch VM runtime
  */
 const logControlEvent = function (type, runtime) {
+    // console.log(type)
     logUserEvent(type, null, runtime);
 }
 
@@ -94,7 +84,6 @@ const _intervalID = setInterval(sendLog, sendInterval);
 module.exports = {
     logListenEvent: logListenEvent,
     logUserEvent: logUserEvent,
-    logUserKeyEvent: logUserKeyEvent,
     logControlEvent: logControlEvent,
     getEventLog: getEventLog
 };
