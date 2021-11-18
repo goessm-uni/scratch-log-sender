@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const userEventLog = require('./user-event-log')
+const logger = require('./logger')
 
 /**
  * Capture additional events from the VM.
@@ -24,13 +24,13 @@ const listenToVM = function (vm) {
     })
 
     vm.on('TURBO_MODE_ON', () => {
-        userEventLog.logControlEvent('turbo_mode_on', vm.runtime)
+        logger.logControlEvent('turbo_mode_on', vm.runtime)
     })
     vm.on('TURBO_MODE_OFF', () => {
-        userEventLog.logControlEvent('turbo_mode_off', vm.runtime)
+        logger.logControlEvent('turbo_mode_off', vm.runtime)
     })
     vm.on('RUNTIME_STARTED', () => {
-        userEventLog.logControlEvent('runtime_started', null)
+        logger.logControlEvent('runtime_started', null)
     })
 };
 
