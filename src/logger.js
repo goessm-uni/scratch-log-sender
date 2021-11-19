@@ -57,6 +57,28 @@ const logControlEvent = function (type, runtime) {
     logUserEvent(type, null, runtime);
 }
 
+const logGuiEvent = function (type, data, runtime) {
+    console.log('Gui event: ' + type)
+    console.log(data)
+    logUserEvent(type, data, runtime)
+}
+
+let lastChangeProps
+const logGuiChangeEvent = function (type, property, newValue, runtime) {
+    // Noise: When you hit enter to confirm a change, the change handler is called twice!
+    // This is probably because both the 'enter' key event and onBlur happen and call the handler.
+    // This can be considered a bug in scratch-gui and there's no pretty way to fix it here.
+    // (scratch-gui also calls the vm functions twice, e.g. renameSprite)
+    //
+    // I handle it by storing the last props, and if they haven't changed discard the event.
+    // (we can't include runtime in the check as it is a cyclic object)
+    const props = {type: type, property: property, newValue: newValue}
+    if (lastChangeProps && JSON.stringify(lastChangeProps) === JSON.stringify(props)) return
+    lastChangeProps = props
+
+    logGuiEvent(type, { property: property, newValue: newValue }, runtime)
+}
+
 /**
  * Send current log buffer over websocket connection
  */
@@ -85,5 +107,7 @@ module.exports = {
     logListenEvent: logListenEvent,
     logUserEvent: logUserEvent,
     logControlEvent: logControlEvent,
+    logGuiEvent: logGuiEvent,
+    logGuiChangeEvent: logGuiChangeEvent,
     getEventLog: getEventLog
 };
