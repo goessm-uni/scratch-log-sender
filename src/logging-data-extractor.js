@@ -33,6 +33,13 @@ const htmlparser2 = require('htmlparser2');
  */
 
 /**
+ * Stores the last known state of the runtime, which contains the code state.
+ * This is useful to get data for actions that alter the state such as delete,
+ * especially when the log function is called after the VM updates.
+ */
+let lastKnownRuntimeState
+
+/**
  * Extract data from a Create event.
  * @param {BlockEvent} event Will only act on Create events.
  * @param {Blocks} blocks The Blocks object where the event occurred.
@@ -259,6 +266,8 @@ const extractCodeState = function (runtime) {
         sprite._blocks = target.sprite.blocks._blocks;
         sprites.push(sprite);
     }
+    // Set last know runtime state
+    lastKnownRuntimeState = runtime;
     return sprites;
 };
 
@@ -288,7 +297,12 @@ const extractEventData = function (event, blocks) {
     return result;
 };
 
+const getLastKnownRuntimeState = function () {
+    return lastKnownRuntimeState;
+}
+
 module.exports = {
     extractEventData: extractEventData,
-    extractCodeState: extractCodeState
+    extractCodeState: extractCodeState,
+    getLastKnownRuntimeState: getLastKnownRuntimeState
 };

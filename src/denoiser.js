@@ -1,17 +1,21 @@
 /**
- * Tells us whether the VM will filter the event.
- * Must be called before the VM processes the event.
+ * Tells us whether the VM filters / has filtered the event.
  * This function mirrors the structure of Blocks.blocklyListen in the VM.
  * This filters rare edge case events that are considered invalid or irrelevant.
+ *
+ * This function is rarely relevant and could be omitted.
+ * However it does ensure that invalid events get filtered.
  *
  * @param {BlockEvent} e A block event.
  * @param {Blocks} blocks The blocks object that will receive this event.
  * @returns {boolean} True if the event gets ignores by the blocks object. False if it gets used.
  */
-const vmIgnoresEvent = function (e, blocks) {
-    // ! Since we currently call log AFTER the VM updated, this function can not be used.
+const vmIgnoresEvent = function (e) {
+    // Since we currently call log AFTER the VM updated, we must get the previous runtime state
+    const runtime = require('./logging-data-extractor').getLastKnownRuntimeState();
+    if (!runtime) return false;
+    const blocks = runtime.getEditingTarget()?.blocks
     if (typeof e !== 'object') return true;
-
     switch (e.type) {
         case 'delete':
             // Delete event for missing block or shadow block
@@ -88,6 +92,7 @@ const isAutomatedAction = function (event, blocks) {
  */
 const eventIsNoise = function (event, blocks) {
     if (isAutomatedAction(event, blocks)) return true;
+    if (vmIgnoresEvent(event)) return true;
     return false;
 };
 
