@@ -1,62 +1,4 @@
 /**
- * Tells us whether the VM filters / has filtered the event.
- * This function mirrors the structure of Blocks.blocklyListen in the VM.
- * This filters rare edge case events that are considered invalid or irrelevant.
- *
- * This function is rarely relevant and could be omitted.
- * However it does ensure that invalid events get filtered.
- *
- * @param {BlockEvent} e A block event.
- * @param {Blocks} blocks The blocks object that will receive this event.
- * @returns {boolean} True if the event gets ignores by the blocks object. False if it gets used.
- */
-const vmIgnoresEvent = function (e) {
-    // Since we currently call log AFTER the VM updated, we must get the previous runtime state
-    const runtime = require('./logging-data-extractor').getLastKnownRuntimeState();
-    if (!runtime) return false;
-    const blocks = runtime.getEditingTarget()?.blocks
-    if (typeof e !== 'object') return true;
-    switch (e.type) {
-        case 'delete':
-            // Delete event for missing block or shadow block
-            if (!blocks._blocks.hasOwnProperty(e.blockId) ||
-                blocks._blocks[e.blockId].shadow) {
-                return true;
-            }
-            break;
-        case 'var_create':
-            if (!(e.isLocal && blocks.editingTarget && !blocks.editingTarget.isStage && !e.isCloud)) {
-                if (blocks.runtime.getTargetForStage().lookupVariableById(e.varId)) {
-                    //variable already exists
-                    return true;
-                }
-                const allTargets = blocks.runtime.targets.filter(t => t.isOriginal);
-                for (const target of allTargets) {
-                    if (target.lookupVariableByNameAndType(e.varName, e.varType, true)) {
-                        // variable name conflict
-                        return true;
-                    }
-                }
-            }
-            break;
-        case 'comment_change':
-        case 'comment_move':
-        case 'comment_delete':
-            const target = blocks.runtime.getEditingTarget();
-            if (target && !target.comments.hasOwnProperty(e.commentId)) {
-                // comment doesn't exist
-                return true;
-            }
-            if (e.type == 'comment_delete' && e.blockId && !target.blocks.getBlock(e.blockId)) {
-                // referenced block doesn't exist
-                return true;
-            }
-    }
-    // VM doesn't filter event
-    return false;
-}
-
-/**
  * Tells us whether a block event is an automated action.
  * Automated action means that the user didn't directly cause the event.
  * Automated actions are internal workings of the VM.
@@ -92,7 +34,6 @@ const isAutomatedAction = function (event, blocks) {
  */
 const eventIsNoise = function (event, blocks) {
     if (isAutomatedAction(event, blocks)) return true;
-    if (vmIgnoresEvent(event)) return true;
     return false;
 };
 
