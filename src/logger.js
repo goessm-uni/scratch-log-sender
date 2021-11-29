@@ -25,15 +25,20 @@ const logUserEvent = function (eventType, eventData, runtime) {
         data: eventData,
         codeState: runtime ? extractor.extractCodeState(runtime) : null
     };
-    // console.log(`logging user action: ${eventType}`);
-    // console.log(eventData)
+    console.log(`logging user action: ${eventType}`);
+    console.log(eventData)
     eventLog.push(actionLog);
 };
+
+// List of block event types that are ignored by the logger.
+const ignoredBlockEventTypes = [
+    'ui_click'
+]
 
 /**
  * Call with a blockly listen event. Extracts relevant information then logs a user event.
  * Tries to filter noise / non-user events.
- * @param {Blockly.Event} event A Blockly listen event
+ * @param {BlockEvent} event A scratch-blocks Blockly event
  * @param {Blocks} blocks Blocks object
  */
 const logListenEvent = function (event, blocks) {
@@ -41,10 +46,15 @@ const logListenEvent = function (event, blocks) {
         // Event is considered noise, ignore
         return;
     }
-    const extractorResult = extractor.extractEventData(event, blocks);
+    const extractionResult = extractor.extractEventData(event, blocks);
 
+    if (ignoredBlockEventTypes.includes(extractionResult.eventType)) {
+        // Ignored event type
+        return;
+    }
+    // console.log(event.type)
     // console.log(event)
-    logUserEvent(extractorResult.eventType, extractorResult.eventData, blocks.runtime);
+    logUserEvent(extractionResult.eventType, extractionResult.eventData, blocks.runtime);
 };
 
 /**
@@ -58,8 +68,6 @@ const logControlEvent = function (type, runtime) {
 }
 
 const logGuiEvent = function (type, data, runtime) {
-    console.log('Gui event: ' + type)
-    console.log(data)
     logUserEvent(type, data, runtime)
 }
 

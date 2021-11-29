@@ -1,5 +1,6 @@
 /**
- * Tells us whether the VM filters the event.
+ * Tells us whether the VM will filter the event.
+ * Must be called before the VM processes the event.
  * This function mirrors the structure of Blocks.blocklyListen in the VM.
  * This filters rare edge case events that are considered invalid or irrelevant.
  *
@@ -8,6 +9,7 @@
  * @returns {boolean} True if the event gets ignores by the blocks object. False if it gets used.
  */
 const vmIgnoresEvent = function (e, blocks) {
+    // ! Since we currently call log AFTER the VM updated, this function can not be used.
     if (typeof e !== 'object') return true;
 
     switch (e.type) {
@@ -61,6 +63,7 @@ const vmIgnoresEvent = function (e, blocks) {
  */
 const isAutomatedAction = function (event, blocks) {
     const userActionsThatRecordUndo = [
+        'var_create',
         'create',
         'move',
         'delete'
@@ -84,7 +87,6 @@ const isAutomatedAction = function (event, blocks) {
  * @returns {boolean} True if event is considered noise, false if it isn't
  */
 const eventIsNoise = function (event, blocks) {
-    if (vmIgnoresEvent(event, blocks)) return true;
     if (isAutomatedAction(event, blocks)) return true;
     return false;
 };
