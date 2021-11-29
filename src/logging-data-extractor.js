@@ -33,11 +33,11 @@ const htmlparser2 = require('htmlparser2');
  */
 
 /**
- * Stores the last known state of the runtime, which contains the code state.
- * This is useful to get data for actions that alter the state such as delete,
- * especially when the log function is called after the VM updates.
+ * Stores the last known state of the blocks on current target.
+ * This is useful to get block data for actions that alter the state such as delete,
+ * because the log function is called after the VM updates.
  */
-let lastKnownRuntimeState
+let lastKnownBlocksState
 
 /**
  * Extract data from a Create event.
@@ -72,7 +72,21 @@ const extractDelete = function (event, blocks) {
 
     // Clone event to data, removing undesired fields using destructuring
     let {type, group, workspaceId, oldXml, ...data} = event
-    data.blockType = _getBlockTypeFromId(data.blockId, blocks)
+    // Since log is called after block is already deleted, we must get block data from lastKnownBlockState
+    if (lastKnownBlocksState) {
+        let block = lastKnownBlocksState[data.blockId]
+        data.blockType = block?.opcode
+        // When multiple blocks deleted: Get all children from 'next' attribute
+        // TODO refactor this to use _getChildBlocksFromXML
+        data.children = []
+        while (block?.next) {
+            block = lastKnownBlocksState[block.next]
+            data.children.push({
+                blockId: block.id,
+                blockType: block.opcode
+            })
+        }
+    }
 
     return {
         eventType: type,
@@ -266,8 +280,6 @@ const extractCodeState = function (runtime) {
         sprite._blocks = target.sprite.blocks._blocks;
         sprites.push(sprite);
     }
-    // Set last know runtime state
-    lastKnownRuntimeState = runtime;
     return sprites;
 };
 
@@ -294,15 +306,13 @@ const extractEventData = function (event, blocks) {
             result = extractionResult
         }
     }
+    // Set last known blocks state to clone of blocks._blocks
+    lastKnownBlocksState = {...blocks._blocks}
+    console.log(lastKnownBlocksState)
     return result;
 };
 
-const getLastKnownRuntimeState = function () {
-    return lastKnownRuntimeState;
-}
-
 module.exports = {
     extractEventData: extractEventData,
-    extractCodeState: extractCodeState,
-    getLastKnownRuntimeState: getLastKnownRuntimeState
+    extractCodeState: extractCodeState
 };
