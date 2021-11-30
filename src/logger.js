@@ -71,6 +71,32 @@ const logGuiEvent = function (type, data, runtime) {
     logUserEvent(type, data, runtime)
 }
 
+/**
+ * Log a GUI event that involves changes to costume or backdrop.
+ * @param {String} type
+ * @param {Object} data
+ * @param {Runtime} runtime
+ */
+const logCostumeEvent = function (type, data, runtime) {
+    // Sprite and Stage are both Targets.
+    // Stage backdrop changes are handled the same as costume changes.
+    // We check if sprite is stage to record backdrop events.
+    if (data.target && runtime && (runtime.getTargetForStage().id === data.target)) {
+        // backdrop event
+        type = type.replace('costume_', 'backdrop_')
+    }
+
+    // For change events prevent double log (enter-blur bug), or excessive changes by batching.
+    if (type.includes('change')) {
+        const funcIdentifier = JSON.stringify({func: logGuiEvent.name, target: data.target, prop: data.property})
+        denoiser.callBatched(funcIdentifier, 500, () => {
+            logGuiEvent(type, data, runtime)
+        })
+    } else {
+        logGuiEvent(type, data, runtime)
+    }
+}
+
 const logSpriteChange = function (spriteId, property, newValue, runtime) {
     // Noise Warn: When you hit enter to confirm a text edit change, the change handler is called twice!
     // This is probably because both the 'enter' key event and onBlur happen and call the handler.
@@ -116,6 +142,7 @@ module.exports = {
     logUserEvent: logUserEvent,
     logControlEvent: logControlEvent,
     logGuiEvent: logGuiEvent,
+    logCostumeEvent, logCostumeEvent,
     logSpriteChange: logSpriteChange,
     getEventLog: getEventLog
 };
