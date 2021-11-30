@@ -51,6 +51,7 @@ const extractCreate = function (event, blocks) {
     // Clone event to data, removing undesired fields using destructuring
     let {type, group, workspaceId, xml, ...data} = event
     data.blockType = _getBlockTypeFromId(data.blockId, blocks)
+    data.outerHTML = xml?.outerHTML
     // Children: Array of child blocks if multiple blocks were created.
     // Array order corresponds to position in single-line block hierarchy (child, grandchild, ...).
     // Empty if a single block was created.
@@ -72,12 +73,13 @@ const extractDelete = function (event, blocks) {
 
     // Clone event to data, removing undesired fields using destructuring
     let {type, group, workspaceId, oldXml, ...data} = event
-    // Since log is called after block is already deleted, we must get block data from lastKnownBlockState
+    data.outerHTML = oldXml?.outerHTML
+    // Since log is called after block is already deleted, we must get block data from lastKnownBlockState.
+    // Alternatively could also use _getChildBlocksFromXML here.
     if (lastKnownBlocksState) {
         let block = lastKnownBlocksState[data.blockId]
         data.blockType = block?.opcode
         // When multiple blocks deleted: Get all children from 'next' attribute
-        // TODO refactor this to use _getChildBlocksFromXML
         data.children = []
         while (block?.next) {
             block = lastKnownBlocksState[block.next]
@@ -144,6 +146,11 @@ const extractComment = function (event, blocks) {
     let {type, group, workspaceId, xml, ...data} = event
     data.blockType = _getBlockTypeFromId(data.blockId, blocks)
 
+    // Extract outerHTML from xml for comment_create and comment_delete
+    if (xml) {
+        data.outerHTML = xml.outerHTML
+    }
+
     return {
         eventType: type,
         eventData: data
@@ -163,6 +170,7 @@ const extractVar = function (event, blocks) {
 
     if (type === 'var_rename') {
         // Rename event doesn't include isLocal, so we infer it like scratch-vm does.
+        // See scratch-vm/src/engine/blocks.blocklyListen for example.
         if (blocks.runtime?.getEditingTarget().variables.hasOwnProperty(event.varId)) {
             data.isLocal = true
         } else {
@@ -219,7 +227,9 @@ const _getBlockTypeFromId = function (blockId, blocks) {
 }
 
 /**
- * Helper function for extractCreate, returns data about block children from xml object.
+ * Helper function for Create or Delete extraction.
+ * Events may include multiple blocks created / deleted at the same time.
+ * This function checks for child blocks in xml.outerHTML and returns them in an array.
  * @param {Object} xml
  * @returns {null|[{}]} Array of objects containing blockID and type of children, or null on error
  * @private
@@ -233,8 +243,7 @@ const _getChildBlocksFromXML = function (xml) {
     const mainBlock = html_doc.children[0]
     if (mainBlock.name !== 'block') return null
 
-    // Create events may include multiple blocks created at the same time.
-    // We check for child blocks and save them in children
+    // Loop while child block exists
     let hasNext = true
     let current_block_doc = mainBlock
     let children = []
@@ -308,7 +317,6 @@ const extractEventData = function (event, blocks) {
     }
     // Set last known blocks state to clone of blocks._blocks
     lastKnownBlocksState = {...blocks._blocks}
-    console.log(lastKnownBlocksState)
     return result;
 };
 
