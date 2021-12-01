@@ -123,10 +123,10 @@ const extractUi = function (event, blocks) {
     if (event.type !== 'ui') return null
 
     // Clone event to data, removing undesired fields using destructuring
-    let {type, group, workspaceId, ...data} = event
+    let {type, group, workspaceId, element, ...data} = event
     data.blockType = _getBlockTypeFromId(data.blockId, blocks)
     // Update event type based on element
-    if (data.element) { type = type + "_" + event.element }
+    if (element) { type = type + "_" + element }
 
     return {
         eventType: type,
