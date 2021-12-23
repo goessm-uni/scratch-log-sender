@@ -16,8 +16,10 @@ const htmlparser2 = require('htmlparser2');
  * A Blockly event, emitted from scratch-blocks.
  * @typedef {Object} BlockEvent
  * @property {String} type
+ * @property {Boolean} [recordUndo]
  * @property {String} [blockId]
  * @property {Object} [xml]
+ * @property {Object} [oldXml]
  * @property {[String]} [ids]
  * @property {String} [element]
  */
@@ -55,7 +57,7 @@ const extractCreate = function (event, blocks) {
     // Children: Array of child blocks if multiple blocks were created.
     // Array order corresponds to position in single-line block hierarchy (child, grandchild, ...).
     // Empty if a single block was created.
-    data.children = _getChildBlocksFromXML(event.xml)
+    data.children = _getBlocksFromXML(event.xml)?.children
 
     return {
         eventType: type,
@@ -74,21 +76,10 @@ const extractDelete = function (event, blocks) {
     // Clone event to data, removing undesired fields using destructuring
     let {type, group, workspaceId, oldXml, ...data} = event
     data.outerHTML = oldXml?.outerHTML
-    // Since log is called after block is already deleted, we must get block data from lastKnownBlockState.
-    // Alternatively could also use _getChildBlocksFromXML here.
-    if (lastKnownBlocksState) {
-        let block = lastKnownBlocksState[data.blockId]
-        data.blockType = block?.opcode
-        // When multiple blocks deleted: Get all children from 'next' attribute
-        data.children = []
-        while (block?.next) {
-            block = lastKnownBlocksState[block.next]
-            data.children.push({
-                blockId: block.id,
-                blockType: block.opcode
-            })
-        }
-    }
+    // Since log is called after block is already deleted, we must get block and children data from XML.
+    const blockData = _getBlocksFromXML(event.oldXml)
+    data.blockType = blockData?.blockType
+    data.children = blockData?.children
 
     return {
         eventType: type,
@@ -229,12 +220,13 @@ const _getBlockTypeFromId = function (blockId, blocks) {
 /**
  * Helper function for Create or Delete extraction.
  * Events may include multiple blocks created / deleted at the same time.
- * This function checks for child blocks in xml.outerHTML and returns them in an array.
+ * This function returns blockId and blockType for main Block and all children,
+ * extracted from xml.outerHTML.
  * @param {Object} xml
- * @returns {null|[{}]} Array of objects containing blockID and type of children, or null on error
+ * @returns {null|Object} Object containing blockID, blockType and children, or null on error
  * @private
  */
-const _getChildBlocksFromXML = function (xml) {
+const _getBlocksFromXML = function (xml) {
     const html = xml?.outerHTML
     if (!html) return null
     const html_doc = htmlparser2.parseDocument(html, {decodeEntities: false})
@@ -242,7 +234,11 @@ const _getChildBlocksFromXML = function (xml) {
     // Get data of head block.
     const mainBlock = html_doc.children[0]
     if (mainBlock.name !== 'block') return null
-
+    const result = {
+        blockId: mainBlock.attribs?.id,
+        blockType: mainBlock.attribs?.type,
+        children: []
+    }
     // Loop while child block exists
     let hasNext = true
     let current_block_doc = mainBlock
@@ -258,7 +254,7 @@ const _getChildBlocksFromXML = function (xml) {
                     if (grandchild.name === 'block') {
                         // This is the doc for the next block. Save it then restart the loop from here.
                         const child_block = grandchild
-                        children.push({
+                        result.children.push({
                             blockId: child_block.attribs?.id,
                             blockType: child_block.attribs?.type
                         })
@@ -269,7 +265,7 @@ const _getChildBlocksFromXML = function (xml) {
             }
         }
     }
-    return children
+    return result
 }
 
 /**
