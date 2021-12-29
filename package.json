@@ -4,7 +4,7 @@
   "description": "Takes Scratch events, extracts relevant data and sends it to a logging endpoint.",
   "main": "index.js",
   "scripts": {
-    "test": "nyc mocha --require test/hooks.js"
+    "test": "nyc --reporter=html --reporter=text mocha --require test/hooks.js"
   },
   "author": "goessm",
   "license": "ISC",
@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@sinonjs/referee": "^9.1.1",
+    "chai": "^4.3.4",
     "mocha": "^9.1.3",
     "nyc": "^15.1.0",
     "sinon": "^12.0.1"

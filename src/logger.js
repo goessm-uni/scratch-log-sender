@@ -26,7 +26,7 @@ const logUserEvent = function (eventType, eventData, runtime) {
         codeState: runtime ? extractor.extractCodeState(runtime) : null
     };
     console.log(`logging user action: ${eventType}`);
-    console.log(eventData)
+    console.log(actionLog)
     eventLog.push(actionLog);
 };
 

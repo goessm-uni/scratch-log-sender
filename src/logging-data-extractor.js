@@ -138,9 +138,7 @@ const extractComment = function (event, blocks) {
     data.blockType = _getBlockTypeFromId(data.blockId, blocks)
 
     // Extract outerHTML from xml for comment_create and comment_delete
-    if (xml) {
-        data.outerHTML = xml.outerHTML
-    }
+    data.outerHTML = xml?.outerHTML
 
     return {
         eventType: type,
@@ -303,7 +301,7 @@ const extractEventData = function (event, blocks) {
         eventType: event.type,
         eventData: {}
     }
-    // Call all extract methods. Every possible event.type should only be handled by only one extractor.
+    // Call all extract methods. Every possible event.type should be handled by only one extractor.
     for (let eventExtractor of eventExtractors) {
         const extractionResult = eventExtractor(event, blocks)
         // If extractor returns non-null value, update result
