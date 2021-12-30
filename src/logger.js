@@ -7,7 +7,6 @@ const extractor = require('./logging-data-extractor');
 const denoiser = require('./denoiser');
 
 const eventLog = [];
-const sendInterval = 10000;
 
 let sendBuffer = [];
 
@@ -134,10 +133,8 @@ const getEventLog = function () {
     return eventLog;
 };
 
-/* Send log every interval */
-const _intervalID = setInterval(sendLog, sendInterval);
-
 module.exports = {
+    sendLog: sendLog,
     logListenEvent: logListenEvent,
     logUserEvent: logUserEvent,
     logControlEvent: logControlEvent,

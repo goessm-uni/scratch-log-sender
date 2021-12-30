@@ -1,15 +1,11 @@
 // const wsURL = 'ws://localhost:8000/logging'; // local
 const wsURL = 'wss://scratch-log-endpoint.herokuapp.com/logging'; // heroku
 
-// Set this to false to disable websocket connections for debugging
-const selfConnect = true;
-
 const authKey = 'notthatsecret';
-const url = new URL(window.location.href);
 const retryDelay = 5000;
 
-let userId = url.searchParams.get('user');
-let taskId = url.searchParams.get('task');
+let userId;
+let taskId;
 let ws;
 let reconnectTimer;
 let saveError = false;
@@ -18,6 +14,7 @@ let saveError = false;
  * @returns {boolean} Whether the websocket is open and ready
  */
 const isOpen = function () {
+    if (!ws) return false;
     return ws?.readyState === WebSocket.OPEN;
 };
 
@@ -87,6 +84,7 @@ const connectWebSocket = function () {
     if (isOpen()) return;
 
     console.log("creating new websocket");
+    _getUserInfoFromUrl();
     let fullURL = userId ? (wsURL + `/?userId=${userId}`) : wsURL;
     ws = new WebSocket(fullURL);
 
@@ -113,10 +111,20 @@ const connectWebSocket = function () {
     };
 };
 
-// Create connection automatically on load.
-if (selfConnect) connectWebSocket();
+const _getUserInfoFromUrl = function () {
+    // Get userId and taskId from url
+    if (window) {
+        const url = new URL(window.location.href);
+        // Replace only if not null
+        const userIdFromUrl = url.searchParams.get('user');
+        if (userIdFromUrl) userId = userIdFromUrl;
+        const taskIdFromUrl = url.searchParams.get('task');
+        if (taskIdFromUrl) taskId = taskIdFromUrl;
+    }
+};
 
 module.exports = {
+    connectWebSocket: connectWebSocket,
     sendActions: sendActions,
     sendString: sendString,
     isOpen: isOpen,
