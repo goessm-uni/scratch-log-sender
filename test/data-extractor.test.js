@@ -1,14 +1,13 @@
 const sinon = require('sinon')
 const {assert} = require("@sinonjs/referee");
-const expect = require('chai').expect
 const {extractEventData, extractCodeState} = require('../src/logging-data-extractor')
 
 const fakeBlocks = {
     getBlock: sinon.fake.returns({opcode: 'blockType'})
 }
 
-describe('.extractEventData()', function () {
-    context('on Create event', function () {
+describe('.extractEventData()', () => {
+    context('on Create event', () => {
         const testCreateEvent = {
             type: 'create',
             blockId: 1,
@@ -25,7 +24,7 @@ describe('.extractEventData()', function () {
             xml: {outerHTML: '<block type=\"head\" id=\"1\" x=\"0\" y=\"0\"><next><block type=\"child\" id=\"2\"></block></next></block>'}
         }
 
-        it('should extract relevant fields from Create event', function () {
+        it('should extract relevant fields from Create event', () => {
             const testEvent = testCreateEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -35,37 +34,37 @@ describe('.extractEventData()', function () {
             assert.equals(data.recordUndo, testEvent.recordUndo)
             assert.equals(data.outerHTML, testEvent.xml.outerHTML)
         });
-        it('should get blockType from blocks using blockId', function () {
+        it('should get blockType from blocks using blockId', () => {
             const extractionResult = extractEventData(testCreateEvent, fakeBlocks)
             assert.equals(extractionResult.eventData.blockType, fakeBlocks.getBlock().opcode)
         });
-        it('should set blockType to null if blockId is null', function () {
+        it('should set blockType to null if blockId is null', () => {
             const testCreateEventNoBlockId = {...testCreateEvent, blockId: null}
             const extractionResult = extractEventData(testCreateEventNoBlockId, fakeBlocks)
             assert.isNull(extractionResult.eventData.blockType)
         });
-        it('should set blockType to null if block does not exist', function () {
+        it('should set blockType to null if block does not exist', () => {
             const fakeBlocksNotFound = {
                 getBlock: sinon.fake.returns(null)
             }
             const extractionResult = extractEventData(testCreateEvent, fakeBlocksNotFound)
             assert.isNull(extractionResult.eventData.blockType)
         });
-        it('should extract types of child blocks from XML', function () {
+        it('should extract types of child blocks from XML', () => {
             const extractionResult = extractEventData(testCreateEventWithChild, fakeBlocks)
             const data = extractionResult.eventData
             assert.equals(data.children.length, 1)
             assert.equals(data.children[0].blockType, 'child')
         });
-        it('should not throw an error if XML is empty', function () {
+        it('should not throw an error if XML is empty', () => {
             let eventNoXml = {...testCreateEvent, xml: null} // Clone but change xml
             extractEventData(eventNoXml, fakeBlocks)
         })
-        it('should continue without error if main xml object is not a block', function () {
+        it('should continue without error if main xml object is not a block', () => {
             let eventWrongXml = {...testCreateEvent, xml: {outerHTML: '<unexpectedType />'}}
             const extractionResult = extractEventData(eventWrongXml, fakeBlocks)
         });
-        it('should ignore XML elements that are not blocks', function () {
+        it('should ignore XML elements that are not blocks', () => {
             let eventStrangeXml = {
                 ...testCreateEvent, xml: {
                     outerHTML: '<block type=\"head\" id=\"1\" x=\"0\" y=\"0\"><next><bock type=\"child\" id=\"2\"></bock></next></block>'
@@ -85,7 +84,7 @@ describe('.extractEventData()', function () {
         });
     });
 
-    context('on Delete Event', function () {
+    context('on Delete Event', () => {
         const testDeleteEvent = {
             type: 'delete',
             blockId: 1,
@@ -101,7 +100,7 @@ describe('.extractEventData()', function () {
             recordUndo: true,
             oldXml: {outerHTML: '<block type=\"head\" id=\"1\" x=\"0\" y=\"0\"><next><block type=\"child\" id=\"2\"></block></next></block>'}
         }
-        it('should extract relevant fields from Delete event', function () {
+        it('should extract relevant fields from Delete event', () => {
             const testEvent = testDeleteEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -112,20 +111,20 @@ describe('.extractEventData()', function () {
             assert.equals(data.recordUndo, testEvent.recordUndo)
             assert.equals(data.outerHTML, testEvent.oldXml.outerHTML)
         });
-        it('should extract types of child blocks from XML', function () {
+        it('should extract types of child blocks from XML', () => {
             const extractionResult = extractEventData(testDeleteEventWithChild, fakeBlocks)
             const data = extractionResult.eventData
             assert.equals(data.children.length, 1)
             assert.equals(data.children[0].blockType, 'child')
         });
-        it('should not throw an error if XML is empty', function () {
+        it('should not throw an error if XML is empty', () => {
             let eventNoXml = {...testDeleteEvent, xml: null} // Clone but change xml
             eventNoXml.xml = null
             extractEventData(eventNoXml, fakeBlocks)
         })
     });
 
-    context('on Change Event', function () {
+    context('on Change Event', () => {
         const testChangeEvent = {
             type: 'change',
             blockId: 1,
@@ -135,7 +134,7 @@ describe('.extractEventData()', function () {
             oldValue: 'oldValue',
             recordUndo: true
         }
-        it('should extract relevant fields from Change event', function () {
+        it('should extract relevant fields from Change event', () => {
             const testEvent = testChangeEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -149,7 +148,7 @@ describe('.extractEventData()', function () {
         });
     });
 
-    context('on Move Event', function () {
+    context('on Move Event', () => {
         const testMoveEvent = {
             type: 'move',
             blockId: 1,
@@ -161,7 +160,7 @@ describe('.extractEventData()', function () {
             oldParentId: 'oldParentId',
             recordUndo: true
         }
-        it('should extract relevant fields from Move event', function () {
+        it('should extract relevant fields from Move event', () => {
             const testEvent = testMoveEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -178,7 +177,7 @@ describe('.extractEventData()', function () {
         });
     });
 
-    context('on Ui Event', function () {
+    context('on Ui Event', () => {
         const testUiEvent = {
             type: 'ui',
             blockId: 1,
@@ -186,7 +185,7 @@ describe('.extractEventData()', function () {
             newValue: 'newValue',
             oldValue: 'oldValue'
         }
-        it('should extract relevant fields from Ui event', function () {
+        it('should extract relevant fields from Ui event', () => {
             const testEvent = testUiEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -195,19 +194,19 @@ describe('.extractEventData()', function () {
             assert.equals(data.newValue, testEvent.newValue)
             assert.equals(data.oldValue, testEvent.oldValue)
         });
-        it('should append the element type to the event type name', function () {
+        it('should append the element type to the event type name', () => {
             const extractionResult = extractEventData(testUiEvent, fakeBlocks)
             // eventType == ui_stackclick
             assert.equals(extractionResult.eventType, 'ui_' + testUiEvent.element)
         });
-        it('should leave the type as ui if no element is set', function () {
+        it('should leave the type as ui if no element is set', () => {
             let eventNoElement = {...testUiEvent, element: null} // Clone but change element
             const extractionResult = extractEventData(eventNoElement, fakeBlocks)
             assert.equals(extractionResult.eventType, eventNoElement.type)
         });
     });
 
-    context('on Comment Event', function () {
+    context('on Comment Event', () => {
         const testCommentEvent = {
             type: 'comment_create',
             blockId: 1,
@@ -229,7 +228,7 @@ describe('.extractEventData()', function () {
             oldContents_: {text: 'oldText'},
             recordUndo: true
         }
-        it('should extract relevant fields from Comment create or delete event', function () {
+        it('should extract relevant fields from Comment create or delete event', () => {
             const testEvent = testCommentEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -244,7 +243,7 @@ describe('.extractEventData()', function () {
             assert.equals(data.xy, testEvent.xy)
             assert.equals(data.recordUndo, testEvent.recordUndo)
         });
-        it('should extract relevant fields from Comment change event', function () {
+        it('should extract relevant fields from Comment change event', () => {
             const testEvent = testCommentChangeEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -255,13 +254,13 @@ describe('.extractEventData()', function () {
             assert.equals(data.oldContents_, testEvent.oldContents_)
             assert.equals(data.recordUndo, testEvent.recordUndo)
         });
-        it('should not throw error if xml is null', function () {
+        it('should not throw error if xml is null', () => {
             const eventNoXml = {...testCommentEvent, xml: null}
             const extractionResult = extractEventData(eventNoXml, fakeBlocks)
         });
     });
 
-    context('on Var Event', function () {
+    context('on Var Event', () => {
         const testVarEvent = {
             type: 'var_create',
             isCloud: false,
@@ -280,7 +279,7 @@ describe('.extractEventData()', function () {
             recordUndo: true
         }
 
-        it('should extract relevant fields from Var create or delete event', function () {
+        it('should extract relevant fields from Var create or delete event', () => {
             const testEvent = testVarEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -292,7 +291,7 @@ describe('.extractEventData()', function () {
             assert.equals(data.varType, testEvent.varType)
             assert.equals(data.recordUndo, testEvent.recordUndo)
         });
-        it('should extract relevant fields from Var rename event', function () {
+        it('should extract relevant fields from Var rename event', () => {
             const testEvent = testVarRenameEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -302,7 +301,7 @@ describe('.extractEventData()', function () {
             assert.equals(data.varId, testEvent.varId)
             assert.equals(data.recordUndo, testEvent.recordUndo)
         });
-        it('should get isLocal on rename by checking editingTarget', function () {
+        it('should get isLocal on rename by checking editingTarget', () => {
             const fakeBlocksWithEditingTarget = {
                 runtime: {
                     getEditingTarget: sinon.fake.returns({
@@ -323,14 +322,14 @@ describe('.extractEventData()', function () {
         });
     });
 
-    context('on Drag Event', function () {
+    context('on Drag Event', () => {
         const testDragEvent = {
             type: 'endDrag',
             blockId: 'blockId',
             isOutside: false,
             recordUndo: true
         }
-        it('should extract relevant fields from Drag event', function () {
+        it('should extract relevant fields from Drag event', () => {
             const testEvent = testDragEvent
             const extractionResult = extractEventData(testEvent, fakeBlocks)
             const data = extractionResult.eventData
@@ -343,8 +342,8 @@ describe('.extractEventData()', function () {
     });
 });
 
-describe('.extractCodeState()', function () {
-    it('should extract all targets that are sprites from runtime', function () {
+describe('.extractCodeState()', () => {
+    it('should extract all targets that are sprites from runtime', () => {
         const fakeRuntime = {
             targets: [
                 {
@@ -361,7 +360,7 @@ describe('.extractCodeState()', function () {
         assert.equals(result.length, 1)
         assert.equals(result[0].name, fakeRuntime.targets[0].sprite.name)
     });
-    it('should not throw error if runtime is null', function () {
+    it('should not throw error if runtime is null', () => {
         const result = extractCodeState(null)
     });
 });
