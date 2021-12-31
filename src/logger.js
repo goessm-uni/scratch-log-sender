@@ -52,8 +52,10 @@ const logListenEvent = function (event, blocks) {
         return;
     }
     // console.log(event.type)
-    // console.log(event)
-    logUserEvent(extractionResult.eventType, extractionResult.eventData, blocks.runtime);
+    console.log(event)
+
+    // Use this to call the exported property instead of function directly, allows stubbing in tests
+    this.logUserEvent(extractionResult.eventType, extractionResult.eventData, blocks.runtime);
 };
 
 /**
@@ -63,11 +65,11 @@ const logListenEvent = function (event, blocks) {
  */
 const logControlEvent = function (type, runtime) {
     // console.log(type)
-    logUserEvent(type, null, runtime);
+    this.logUserEvent(type, null, runtime);
 }
 
 const logGuiEvent = function (type, data, runtime) {
-    logUserEvent(type, data, runtime)
+    this.logUserEvent(type, data, runtime)
 }
 
 /**
@@ -89,10 +91,10 @@ const logCostumeEvent = function (type, data, runtime) {
     if (type.includes('change')) {
         const funcIdentifier = JSON.stringify({func: logGuiEvent.name, target: data.target, prop: data.property})
         denoiser.callBatched(funcIdentifier, 500, () => {
-            logGuiEvent(type, data, runtime)
+            this.logGuiEvent(type, data, runtime)
         })
     } else {
-        logGuiEvent(type, data, runtime)
+        this.logGuiEvent(type, data, runtime)
     }
 }
 
@@ -108,7 +110,7 @@ const logSpriteChange = function (spriteId, property, newValue, runtime) {
     // Rapid GUI change events of same type get batched into one, because some selectors fire a lot of events.
     const funcIdentifier = JSON.stringify({func: logGuiEvent.name, type: type, property: property})
     denoiser.callBatched(funcIdentifier, 250, () => {
-        logGuiEvent(type, { spriteId: spriteId, property: property, newValue: newValue }, runtime)
+        this.logGuiEvent(type, { spriteId: spriteId, property: property, newValue: newValue }, runtime)
     })
 }
 

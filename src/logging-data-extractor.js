@@ -273,7 +273,7 @@ const _getBlocksFromXML = function (xml) {
  * @returns {[]} Array of Sprite objects containing the _blocks block state.
  */
 const extractCodeState = function (runtime) {
-    if (!runtime) return null;
+    if (!runtime?.targets) return null;
     const sprites = [];
     for (const target of runtime.targets) {
         if (!target?.sprite) continue;
