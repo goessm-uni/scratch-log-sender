@@ -18,7 +18,16 @@ const fakeRuntimeEditingTarget = {
         }
     })
 }
+
+const validCreateEvent = {
+    type: 'create',
+    blockId: 1,
+    ids: [1],
+    recordUndo: true,
+    xml: {outerHTML: '<block type=\"block\" id=\"1\" x=\"0\" y=\"0\"></block>'}
+}
 module.exports = {
     fakeBlocks: fakeBlocks,
-    fakeRuntimeEditingTarget: fakeRuntimeEditingTarget
+    fakeRuntimeEditingTarget: fakeRuntimeEditingTarget,
+    validCreateEvent: validCreateEvent
 }
