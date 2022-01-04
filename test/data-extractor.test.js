@@ -306,6 +306,11 @@ describe('.extractEventData()', () => {
             const extractionResult = extractEventData(testVarRenameEvent, fakeBlocksWithEditingTarget)
             assert.equals(extractionResult.eventData.isLocal, true)
         });
+        it('should set isLocal to false if varId is not on editingTarget', () => {
+            const testEventWrongVarId = {...testVarRenameEvent, varId: 'varIdNotFound'}
+            const extractionResult = extractEventData(testEventWrongVarId, fakeBlocksWithEditingTarget)
+            assert.equals(extractionResult.eventData.isLocal, false)
+        });
     });
 
     context('on Drag Event', () => {
@@ -324,6 +329,16 @@ describe('.extractEventData()', () => {
             assert.equals(data.blockType, fakeBlocks.getBlock().opcode)
             assert.equals(data.isOutside, testEvent.isOutside)
             assert.equals(data.recordUndo, testEvent.recordUndo)
+        });
+    });
+    context('on invalid event type', () => {
+        const testInvalidEvent = {
+            type: 'invalid',
+            recordUndo: true
+        }
+        it('should return empty data object', () => {
+            const extractionResult = extractEventData(testInvalidEvent, fakeBlocks)
+            assert.equals(extractionResult.eventData, {})
         });
     });
 });
