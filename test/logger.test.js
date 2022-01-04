@@ -4,11 +4,7 @@ const logger = require('../src/logger')
 const ws = require('../src/logging-websocket')
 const denoiser = require('../src/denoiser')
 const extractor = require('../src/logging-data-extractor')
-
-const fakeBlocks = {
-    getBlock: sinon.fake.returns({opcode: 'blockType'}),
-    runtime: {}
-}
+const {fakeBlocks} = require('./fixtures/scratch-fixtures')
 
 describe('.sendLog', () => {
     const testAction = {

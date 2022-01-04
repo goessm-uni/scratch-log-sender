@@ -307,6 +307,7 @@ const extractEventData = function (event, blocks) {
         // If extractor returns non-null value, update result
         if (extractionResult) {
             result = extractionResult
+            break
         }
     }
     // Set last known blocks state to clone of blocks._blocks

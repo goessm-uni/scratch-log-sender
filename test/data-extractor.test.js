@@ -1,10 +1,9 @@
 const sinon = require('sinon')
 const {assert} = require("@sinonjs/referee");
 const {extractEventData, extractCodeState} = require('../src/logging-data-extractor')
+const scratchFixtures = require('./fixtures/scratch-fixtures')
 
-const fakeBlocks = {
-    getBlock: sinon.fake.returns({opcode: 'blockType'})
-}
+const fakeBlocks = scratchFixtures.fakeBlocks
 
 describe('.extractEventData()', () => {
     context('on Create event', () => {
@@ -279,9 +278,11 @@ describe('.extractEventData()', () => {
             recordUndo: true
         }
 
+        const fakeBlocksWithEditingTarget = {...fakeBlocks, runtime: scratchFixtures.fakeRuntimeEditingTarget}
+
         it('should extract relevant fields from Var create or delete event', () => {
             const testEvent = testVarEvent
-            const extractionResult = extractEventData(testEvent, fakeBlocks)
+            const extractionResult = extractEventData(testEvent, fakeBlocksWithEditingTarget)
             const data = extractionResult.eventData
             assert.equals(extractionResult.eventType, testEvent.type)
             assert.equals(data.isCloud, testEvent.isCloud)
@@ -293,7 +294,7 @@ describe('.extractEventData()', () => {
         });
         it('should extract relevant fields from Var rename event', () => {
             const testEvent = testVarRenameEvent
-            const extractionResult = extractEventData(testEvent, fakeBlocks)
+            const extractionResult = extractEventData(testEvent, fakeBlocksWithEditingTarget)
             const data = extractionResult.eventData
             assert.equals(extractionResult.eventType, testEvent.type)
             assert.equals(data.newName, testEvent.newName)
@@ -302,21 +303,6 @@ describe('.extractEventData()', () => {
             assert.equals(data.recordUndo, testEvent.recordUndo)
         });
         it('should get isLocal on rename by checking editingTarget', () => {
-            const fakeBlocksWithEditingTarget = {
-                runtime: {
-                    getEditingTarget: sinon.fake.returns({
-                        variables: {
-                            varId: {
-                                id: 'varId',
-                                isCloud: false,
-                                name: 'varName',
-                                type: '',
-                                value: 0
-                            }
-                        }
-                    })
-                }
-            }
             const extractionResult = extractEventData(testVarRenameEvent, fakeBlocksWithEditingTarget)
             assert.equals(extractionResult.eventData.isLocal, true)
         });
