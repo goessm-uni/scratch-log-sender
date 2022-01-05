@@ -1,10 +1,10 @@
 const authKey = 'notthatsecret';
 const retryDelay = 5000;
 
- // ws keeps a small state to help with reconnecting
-const params = {
-    userId: null,
-    taskId: null
+// ws keeps a small state to help with reconnecting
+let params = {
+    userId: undefined,
+    taskId: undefined
 };
 let ws;
 let reconnectTimer;
@@ -118,6 +118,22 @@ const connectWebSocket = function (url) {
     };
 };
 
+/**
+ * Resets the state of this module. Currently only used for tests.
+ * It keeps a small state to help with reconnecting, could be refactored to store elsewhere or in cookie.
+ */
+const resetState = function () {
+    params = {
+        userId: undefined,
+        taskId: undefined
+    }
+    if (ws && typeof ws.close === 'function') ws.close()
+    ws = undefined
+    if (reconnectTimer) clearInterval(reconnectTimer)
+    reconnectTimer = null
+    saveError = false
+};
+
 const _getParamsFromUrl = function () {
     // Get userId and taskId from url
     const url = new URL(window.location.href);
@@ -134,5 +150,5 @@ module.exports = {
     sendString: sendString,
     isOpen: isOpen,
     hasSaveError: hasSaveError,
-    params: params
+    resetState: resetState
 };
