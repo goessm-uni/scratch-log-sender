@@ -83,10 +83,18 @@ const connectWebSocket = function () {
     // Don't reconnect healthy connection
     if (isOpen()) return;
 
-    console.log("creating new websocket");
     _getUserInfoFromUrl();
-    let fullURL = userId ? (wsURL + `/?userId=${userId}`) : wsURL;
-    ws = new WebSocket(fullURL);
+    let fullURL = wsURL
+    let firstParam = true
+    if (userId) {
+        fullURL += `/?userId=${userId}`
+        firstParam = false
+    }
+    if (taskId) {
+        fullURL += (firstParam) ? '/?' : '&' // use & if not first param
+        fullURL += `taskId=${taskId}`
+    }
+    ws = new window.WebSocket(fullURL);
 
     ws.onopen = function () {
         console.log('WebSocket Connected');
