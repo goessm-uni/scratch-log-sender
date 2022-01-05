@@ -1,8 +1,11 @@
 const authKey = 'notthatsecret';
 const retryDelay = 5000;
 
-let userId;
-let taskId;
+ // ws keeps a small state to help with reconnecting
+const params = {
+    userId: null,
+    taskId: null
+};
 let ws;
 let reconnectTimer;
 let saveError = false;
@@ -65,7 +68,7 @@ const handleResponse = function (msg) {
         if (saveError) console.log(`Actions not saved on endpoint: ${msg.error}`);
     }
     if ('newUserId' in msg) {
-        userId = msg.newUserId;
+        params.userId = msg.newUserId;
     }
 
 };
@@ -80,13 +83,13 @@ const connectWebSocket = function (url) {
     // Don't reconnect healthy connection
     if (isOpen()) return;
 
-    _getUserInfoFromUrl();
+    _getParamsFromUrl();
     let firstParam = true
-    if (userId) {
+    if (params.userId) {
         url += `/?userId=${userId}`
         firstParam = false
     }
-    if (taskId) {
+    if (params.taskId) {
         url += (firstParam) ? '/?' : '&' // use & if not first param
         url += `taskId=${taskId}`
     }
@@ -115,16 +118,14 @@ const connectWebSocket = function (url) {
     };
 };
 
-const _getUserInfoFromUrl = function () {
+const _getParamsFromUrl = function () {
     // Get userId and taskId from url
-    if (window) {
-        const url = new URL(window.location.href);
-        // Replace only if not null
-        const userIdFromUrl = url.searchParams.get('user');
-        if (userIdFromUrl) userId = userIdFromUrl;
-        const taskIdFromUrl = url.searchParams.get('task');
-        if (taskIdFromUrl) taskId = taskIdFromUrl;
-    }
+    const url = new URL(window.location.href);
+    // Replace only if not null
+    const userIdFromUrl = url?.searchParams.get('user');
+    if (userIdFromUrl) params.userId = userIdFromUrl;
+    const taskIdFromUrl = url?.searchParams.get('task');
+    if (taskIdFromUrl) params.taskId = taskIdFromUrl;
 };
 
 module.exports = {
@@ -132,5 +133,6 @@ module.exports = {
     sendActions: sendActions,
     sendString: sendString,
     isOpen: isOpen,
-    hasSaveError: hasSaveError
+    hasSaveError: hasSaveError,
+    params: params
 };
