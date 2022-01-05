@@ -6,7 +6,8 @@ const selfStarting = true;
 const sendDelay = 10000; // 10 seconds
 
 const initConnection = function() {
-    loggingWs.connectWebSocket();
+    // loggingWs.connectWebSocket('ws://localhost:8000/logging'); // local
+    loggingWs.connectWebSocket('wss://scratch-log-endpoint.herokuapp.com/logging'); // Add your endpoint url here
     /* Send log every interval */
     const _intervalID = setInterval(logger.sendLog, sendDelay);
 };

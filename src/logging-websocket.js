@@ -1,6 +1,3 @@
-// const wsURL = 'ws://localhost:8000/logging'; // local
-const wsURL = 'wss://scratch-log-endpoint.herokuapp.com/logging'; // heroku
-
 const authKey = 'notthatsecret';
 const retryDelay = 5000;
 
@@ -77,24 +74,23 @@ const handleResponse = function (msg) {
  * Creates new ws connection to logging endpoint, automatically reconnects on close.
  * Doesn't change or redo existing connection.
  */
-const connectWebSocket = function () {
+const connectWebSocket = function (url) {
     clearInterval(reconnectTimer);
     reconnectTimer = null;
     // Don't reconnect healthy connection
     if (isOpen()) return;
 
     _getUserInfoFromUrl();
-    let fullURL = wsURL
     let firstParam = true
     if (userId) {
-        fullURL += `/?userId=${userId}`
+        url += `/?userId=${userId}`
         firstParam = false
     }
     if (taskId) {
-        fullURL += (firstParam) ? '/?' : '&' // use & if not first param
-        fullURL += `taskId=${taskId}`
+        url += (firstParam) ? '/?' : '&' // use & if not first param
+        url += `taskId=${taskId}`
     }
-    ws = new window.WebSocket(fullURL);
+    ws = new window.WebSocket(url);
 
     ws.onopen = function () {
         console.log('WebSocket Connected');
