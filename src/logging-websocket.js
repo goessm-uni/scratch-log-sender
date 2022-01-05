@@ -86,12 +86,12 @@ const connectWebSocket = function (url) {
     _getParamsFromUrl();
     let firstParam = true
     if (params.userId) {
-        url += `/?userId=${userId}`
+        url += `/?userId=${params.userId}`
         firstParam = false
     }
     if (params.taskId) {
         url += (firstParam) ? '/?' : '&' // use & if not first param
-        url += `taskId=${taskId}`
+        url += `taskId=${params.taskId}`
     }
     ws = new window.WebSocket(url);
 
