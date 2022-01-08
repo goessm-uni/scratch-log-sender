@@ -4,10 +4,10 @@ const vmListener = require('./src/virtual-machine-listener')
 
 const selfStarting = true;
 const sendDelay = 10000; // 10 seconds
+const wsUrl = 'wss://endpoint.example.com/logging' // Add your endpoint url here
 
 const initConnection = function() {
-    // loggingWs.connectWebSocket('ws://localhost:8000/logging'); // local
-    loggingWs.connectWebSocket('wss://scratch-log-endpoint.herokuapp.com/logging'); // Add your endpoint url here
+    loggingWs.connectWebSocket(wsUrl);
     /* Send log every interval */
     const _intervalID = setInterval(logger.sendLog, sendDelay);
 };
