@@ -1,5 +1,6 @@
 const sinon = require('sinon')
 const {assert} = require("@sinonjs/referee");
+const FakeTimers = require("@sinonjs/fake-timers");
 const logger = require('../src/logger')
 const ws = require('../src/logging-websocket')
 const denoiser = require('../src/denoiser')
@@ -167,7 +168,6 @@ describe('.logCostumeEvent', () => {
     });
     context('type includes change', () => {
         it('should call logGuiEvent only once for rapid changes', () => {
-            const FakeTimers = require("@sinonjs/fake-timers");
             const clock = FakeTimers.install()
             const logGuiEventFake = sinon.fake()
             sinon.replace(logger, 'logGuiEvent', logGuiEventFake)
@@ -176,6 +176,7 @@ describe('.logCostumeEvent', () => {
             logger.logCostumeEvent('testType_change', {}, {})
             logger.logCostumeEvent('testType_change', {}, {})
             clock.tick(1000)
+            clock.uninstall()
             sinon.assert.calledOnce(logGuiEventFake)
         });
         it('should call denoiser.callBatched with logGuiEvent to batch calls', () => {
@@ -199,13 +200,13 @@ describe('.logCostumeEvent', () => {
 });
 describe('.logSpriteChange', () => {
     it('should call logGuiEvent with sprite_change', () => {
-        const FakeTimers = require("@sinonjs/fake-timers");
         const clock = FakeTimers.install()
         const logGuiEventFake = sinon.fake()
         sinon.replace(logger, 'logGuiEvent', logGuiEventFake)
 
         logger.logSpriteChange('spriteId', 'property', 'newValue', {})
         clock.tick(1000)
+        clock.uninstall()
         sinon.assert.calledWith(logGuiEventFake, sinon.match('sprite_change'))
     });
     it('should call logGuiEvent only once for rapid changes', () => {
@@ -218,6 +219,7 @@ describe('.logSpriteChange', () => {
         logger.logSpriteChange('spriteId', 'property', 'newValue', {})
         logger.logSpriteChange('spriteId', 'property', 'newValue', {})
         clock.tick(1000)
+        clock.uninstall()
         sinon.assert.calledOnce(logGuiEventFake)
     });
 });

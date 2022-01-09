@@ -15,7 +15,15 @@ let saveError = false;
  */
 const isOpen = function () {
     if (!ws) return false;
-    return ws?.readyState === WebSocket.OPEN;
+    return ws.readyState === WebSocket.OPEN;
+};
+
+/**
+ * @returns {boolean} Whether websocket is currently trying to reconnect
+ */
+const isReconnecting = function () {
+    if (reconnectTimer) return true
+    return false
 };
 
 /**
@@ -42,7 +50,7 @@ const sendString = function (message) {
  * @returns {boolean} True if message was sent, else false
  */
 const sendActions = function (actions) {
-    if (!isOpen) return false;
+    if (!isOpen()) return false;
     const payload = {};
     payload.authKey = authKey;
     payload.userActions = actions;
@@ -63,6 +71,7 @@ const handleResponse = function (msg) {
         console.log('message received was not valid JSON');
         return;
     }
+    if (typeof msg != 'object') return
     if ('success' in msg) {
         saveError = !msg.success;
         if (saveError) console.log(`Actions not saved on endpoint: ${msg.error}`);
@@ -127,8 +136,8 @@ const resetState = function () {
         userId: undefined,
         taskId: undefined
     }
-    if (ws && typeof ws.close === 'function') ws.close()
-    ws = undefined
+    // if (ws && typeof ws.terminate === 'function') ws.terminate()
+    ws = undefined // Clear WebSocket
     if (reconnectTimer) clearInterval(reconnectTimer)
     reconnectTimer = null
     saveError = false
@@ -149,6 +158,7 @@ module.exports = {
     sendActions: sendActions,
     sendString: sendString,
     isOpen: isOpen,
+    isReconnecting: isReconnecting,
     hasSaveError: hasSaveError,
     resetState: resetState
 };
