@@ -141,7 +141,7 @@ module.exports = {
     logUserEvent: logUserEvent,
     logControlEvent: logControlEvent,
     logGuiEvent: logGuiEvent,
-    logCostumeEvent, logCostumeEvent,
+    logCostumeEvent: logCostumeEvent,
     logSpriteChange: logSpriteChange,
     getEventLog: getEventLog
 };
