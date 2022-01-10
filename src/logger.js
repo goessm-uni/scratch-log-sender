@@ -68,8 +68,31 @@ const logControlEvent = function (type, runtime) {
     this.logUserEvent(type, null, runtime);
 }
 
+/**
+ * Log a Gui event.
+ * Event types containing 'change' will be batched based on the data.target and data.property fields.
+ * @param {String} type
+ * @param {object} data
+ * @param {Runtime} runtime
+ */
 const logGuiEvent = function (type, data, runtime) {
-    this.logUserEvent(type, data, runtime)
+    // Noise / Bug Info: When you hit enter to confirm a text edit change, the change handler is called twice!
+    // This is probably because both the 'enter' key event and onBlur happen and call the handler.
+    // This is a bug in scratch-gui (it also calls the vm functions twice, e.g. renameSprite).
+    //
+    // Here this get handled by batching, so we don't have to worry about it.
+
+    // Batch change events together to prevent event spam by selectors, and the blur-bug.
+    const batchWindow = 400;
+    if (type.includes('change')) {
+        const funcIdentifier = JSON.stringify({func: logUserEvent.name, target: data.target, prop: data.property})
+        denoiser.callBatched(funcIdentifier, batchWindow, () => {
+            this.logUserEvent(type, data, runtime)
+        });
+    } else {
+        // No batching, just call logUserEvent.
+        this.logUserEvent(type, data, runtime);
+    }
 }
 
 /**
@@ -87,31 +110,18 @@ const logCostumeEvent = function (type, data, runtime) {
         type = type.replace('costume_', 'backdrop_')
     }
 
-    // For change events prevent double log (enter-blur bug), or excessive changes by batching.
-    if (type.includes('change')) {
-        const funcIdentifier = JSON.stringify({func: logGuiEvent.name, target: data.target, prop: data.property})
-        denoiser.callBatched(funcIdentifier, 500, () => {
-            this.logGuiEvent(type, data, runtime)
-        })
-    } else {
-        this.logGuiEvent(type, data, runtime)
-    }
+    this.logGuiEvent(type, data, runtime);
 }
 
+/**
+ * Convenience function to call logGuiEvent for a sprite_change event
+ * @param {String} spriteId
+ * @param {String} property
+ * @param {any} newValue
+ * @param {Runtime} runtime
+ */
 const logSpriteChange = function (spriteId, property, newValue, runtime) {
-    // Noise Warn: When you hit enter to confirm a text edit change, the change handler is called twice!
-    // This is probably because both the 'enter' key event and onBlur happen and call the handler.
-    // This can be considered a bug in scratch-gui (it also calls the vm functions twice, e.g. renameSprite).
-    //
-    // You could handle it by storing the last props, and if they haven't changed discard the event.
-    // Here this get handled by batching anyway, so we don't have to worry about it.
-
-    const type = 'sprite_change'
-    // Rapid GUI change events of same type get batched into one, because some selectors fire a lot of events.
-    const funcIdentifier = JSON.stringify({func: logGuiEvent.name, type: type, property: property})
-    denoiser.callBatched(funcIdentifier, 250, () => {
-        this.logGuiEvent(type, { spriteId: spriteId, property: property, newValue: newValue }, runtime)
-    })
+    this.logGuiEvent('sprite_change', { spriteId: spriteId, property: property, newValue: newValue }, runtime);
 }
 
 /**

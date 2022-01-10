@@ -154,38 +154,29 @@ describe('.logGuiEvent', () => {
         logger.logGuiEvent('testType', {}, {})
         sinon.assert.calledWith(logUserEventFake, 'testType', {}, {})
     });
+    context('type contains change', () => {
+        it('should call logUserEvent only once for rapid changes', () => {
+            const clock = FakeTimers.install()
+            const logUserEventFake = sinon.fake()
+            sinon.replace(logger, 'logUserEvent', logUserEventFake)
+
+            logger.logGuiEvent('testType_change', {target: 'target', property: 'property'}, {})
+            logger.logGuiEvent('testType_change', {target: 'target', property: 'property'}, {})
+            logger.logGuiEvent('testType_change', {target: 'target', property: 'property'}, {})
+            clock.tick(1000)
+            clock.uninstall()
+            sinon.assert.calledOnce(logUserEventFake)
+        });
+    });
 });
 
 describe('.logCostumeEvent', () => {
-    context('type is not change', () => {
-        it('should call logGuiEvent', () => {
-            const logGuiEventFake = sinon.fake()
-            sinon.replace(logger, 'logGuiEvent', logGuiEventFake)
+    it('should call logGuiEvent', () => {
+        const logGuiEventFake = sinon.fake()
+        sinon.replace(logger, 'logGuiEvent', logGuiEventFake)
 
-            logger.logCostumeEvent('testType', {}, {})
-            sinon.assert.calledWith(logGuiEventFake, 'testType', {}, {})
-        });
-    });
-    context('type includes change', () => {
-        it('should call logGuiEvent only once for rapid changes', () => {
-            const clock = FakeTimers.install()
-            const logGuiEventFake = sinon.fake()
-            sinon.replace(logger, 'logGuiEvent', logGuiEventFake)
-
-            logger.logCostumeEvent('testType_change', {}, {})
-            logger.logCostumeEvent('testType_change', {}, {})
-            logger.logCostumeEvent('testType_change', {}, {})
-            clock.tick(1000)
-            clock.uninstall()
-            sinon.assert.calledOnce(logGuiEventFake)
-        });
-        it('should call denoiser.callBatched with logGuiEvent to batch calls', () => {
-            const callBatchedFake = sinon.fake()
-            sinon.replace(denoiser, 'callBatched', callBatchedFake)
-
-            logger.logCostumeEvent('testType_change', {}, {})
-            sinon.assert.called(callBatchedFake)
-        });
+        logger.logCostumeEvent('testType', {}, {})
+        sinon.assert.calledWith(logGuiEventFake, 'testType', {}, {})
     });
     it('should replace costume with backdrop in type name if target is stage', () => {
         const logGuiEventFake = sinon.fake()
@@ -208,18 +199,5 @@ describe('.logSpriteChange', () => {
         clock.tick(1000)
         clock.uninstall()
         sinon.assert.calledWith(logGuiEventFake, sinon.match('sprite_change'))
-    });
-    it('should call logGuiEvent only once for rapid changes', () => {
-        const FakeTimers = require("@sinonjs/fake-timers");
-        const clock = FakeTimers.install()
-        const logGuiEventFake = sinon.fake()
-        sinon.replace(logger, 'logGuiEvent', logGuiEventFake)
-
-        logger.logSpriteChange('spriteId', 'property', 'newValue', {})
-        logger.logSpriteChange('spriteId', 'property', 'newValue', {})
-        logger.logSpriteChange('spriteId', 'property', 'newValue', {})
-        clock.tick(1000)
-        clock.uninstall()
-        sinon.assert.calledOnce(logGuiEventFake)
     });
 });
