@@ -8,6 +8,7 @@ let params = {
 };
 let ws;
 let reconnectTimer;
+let lastUrl;
 let saveError = false;
 
 /**
@@ -84,13 +85,20 @@ const handleResponse = function (msg) {
 
 /**
  * Creates new ws connection to logging endpoint, automatically reconnects on close.
- * Doesn't change or redo existing connection.
+ * Doesn't change or redo an existing open connection.
+ * Remembers url param if given once.
  */
 const connectWebSocket = function (url) {
-    clearInterval(reconnectTimer);
+    clearInterval(reconnectTimer); // Stop reconnect
     reconnectTimer = null;
-    // Don't reconnect healthy connection
-    if (isOpen()) return;
+    if (isOpen()) return; // Don't reconnect healthy connection
+
+    if (url) {
+        lastUrl = url; // Save url to lastUrl
+    } else {
+        url = lastUrl; // Get last url
+    }
+    if (!url) return; // No url to connect to
 
     _getParamsFromUrl();
     let firstParam = true
@@ -137,10 +145,11 @@ const resetState = function () {
         taskId: undefined
     }
     // if (ws && typeof ws.terminate === 'function') ws.terminate()
-    ws = undefined // Clear WebSocket
-    if (reconnectTimer) clearInterval(reconnectTimer)
-    reconnectTimer = null
-    saveError = false
+    ws = undefined; // Clear WebSocket
+    if (reconnectTimer) clearInterval(reconnectTimer);
+    reconnectTimer = null;
+    lastUrl = null;
+    saveError = false;
 };
 
 const _getParamsFromUrl = function () {

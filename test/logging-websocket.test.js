@@ -76,6 +76,31 @@ describe('.connectWebSocket', () => {
             }, 100)
         });
     });
+    context('called without params', () => {
+        jsdom({url: 'http://localhost:8080'})
+        beforeEach(() => {
+            ws.resetState()
+        });
+        afterEach(() => {
+            ws.resetState()
+        })
+        it('should remember last url and use it to connect', () => {
+            const fakeWsCopy = {...fakeWs}
+            const wsFake = sinon.fake.returns(fakeWsCopy)
+            sinon.replace(window, 'WebSocket', wsFake)
+            ws.connectWebSocket(fakeWsUrl) // Should save fakeWsUrl
+            fakeWsCopy.readyState = WebSocket.CLOSED
+            ws.connectWebSocket() // Should use saved url
+            sinon.assert.calledTwice(wsFake)
+            assert.equals(wsFake.firstArg, fakeWsUrl)
+        });
+        it('should do nothing if no url was ever given', () => {
+            const wsFake = sinon.fake.returns(fakeWs)
+            sinon.replace(window, 'WebSocket', wsFake)
+            ws.connectWebSocket() // Should save fakeWsUrl
+            sinon.assert.notCalled(wsFake)
+        });
+    });
 });
 
 describe('ws.onmessage', () => {
