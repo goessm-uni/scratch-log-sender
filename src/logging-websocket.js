@@ -3,8 +3,8 @@ const retryDelay = 5000;
 
 // ws keeps a small state to help with reconnecting
 let params = {
-    userId: undefined,
-    taskId: undefined
+    userId: null,
+    taskId: null
 };
 let ws;
 let reconnectTimer;
@@ -100,7 +100,7 @@ const connectWebSocket = function (url) {
     }
     if (!url) return; // No url to connect to
 
-    _getParamsFromUrl();
+    _setParamsFromUrl();
     let firstParam = true
     if (params.userId) {
         url += `/?userId=${params.userId}`
@@ -141,8 +141,8 @@ const connectWebSocket = function (url) {
  */
 const resetState = function () {
     params = {
-        userId: undefined,
-        taskId: undefined
+        userId: null,
+        taskId: null
     }
     // if (ws && typeof ws.terminate === 'function') ws.terminate()
     ws = undefined; // Clear WebSocket
@@ -152,7 +152,21 @@ const resetState = function () {
     saveError = false;
 };
 
-const _getParamsFromUrl = function () {
+/**
+ * @returns {String | null} userId
+ */
+const getUserId = function () {
+    return params.userId;
+};
+
+/**
+ * @returns {String | null} taskId
+ */
+const getTaskId = function () {
+    return params.taskId;
+};
+
+const _setParamsFromUrl = function () {
     // Get userId and taskId from url
     const url = new URL(window.location.href);
     // Replace only if not null
@@ -169,5 +183,7 @@ module.exports = {
     isOpen: isOpen,
     isReconnecting: isReconnecting,
     hasSaveError: hasSaveError,
-    resetState: resetState
+    resetState: resetState,
+    getUserId: getUserId,
+    getTaskId: getTaskId
 };

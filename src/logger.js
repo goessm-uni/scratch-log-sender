@@ -20,6 +20,8 @@ const logUserEvent = function (eventType, eventData, runtime) {
     const time = new Date().getTime();
     const actionLog = {
         timestamp: time,
+        userId: ws.getUserId(),
+        taskId: ws.getTaskId(),
         type: eventType,
         data: eventData,
         codeState: runtime ? extractor.extractCodeState(runtime) : null

@@ -259,24 +259,20 @@ describe('.sendString', () => {
 });
 
 describe('.resetState', () => {
-    jsdom({url: 'http://localhost:8080'})
+    jsdom({url: 'http://localhost:8080/?user=testUserId&task=testTaskId'})
     beforeEach(() => {
         ws.resetState()
     })
-    it('should clear userId', () => {
-        const fakeWebSocket = {...fakeWs}
-        const wsFake = sinon.fake.returns(fakeWebSocket)
-        sinon.replace(window, 'WebSocket', wsFake)
+    it('should clear userId and taskId', () => {
+        sinon.replace(window, 'WebSocket', sinon.fake.returns({...fakeWs}))
         ws.connectWebSocket(fakeWsUrl)
-        const message = JSON.stringify({newUserId: 'testUserId'})
-        fakeWebSocket.onmessage({data: message}) // set ws.userId
-        fakeWebSocket.readyState = 3 // close fake websocket
+        assert.isFalse(ws.getUserId() == null)
+        assert.isFalse(ws.getTaskId() == null)
         ws.resetState()
-        ws.connectWebSocket(fakeWsUrl)
-        assert.equals(wsFake.firstArg.indexOf('testUserId'), -1)
+        assert.isTrue(ws.getUserId() == null)
+        assert.isTrue(ws.getTaskId() == null)
     });
     it('should clear websocket', () => {
-        jsdom({url: 'http://localhost:8080'})
         sinon.replace(window, 'WebSocket', sinon.fake.returns(fakeWs))
         ws.connectWebSocket(fakeWsUrl)
         assert.isTrue(ws.isOpen())
