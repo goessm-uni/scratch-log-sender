@@ -4,7 +4,8 @@
   "description": "Takes Scratch events, extracts relevant data and sends it to a logging endpoint.",
   "main": "index.js",
   "scripts": {
-    "test": "nyc --reporter=html --reporter=text mocha --require test/hooks.js"
+    "test": "nyc --reporter=html --reporter=text --reporter=json-summary mocha --require test/hooks.js",
+    "make-badges": "istanbul-badges-readme"
   },
   "author": "goessm",
   "license": "ISC",
@@ -15,6 +16,7 @@
     "@sinonjs/fake-timers": "^8.1.0",
     "@sinonjs/referee": "^9.1.1",
     "chai": "^4.3.4",
+    "istanbul-badges-readme": "^1.8.1",
     "mocha": "^9.1.3",
     "mocha-jsdom": "^2.0.0",
     "mock-socket": "^9.0.8",

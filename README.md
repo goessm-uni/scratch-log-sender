@@ -1,4 +1,7 @@
 # scratch-log-sender
+| Statements                  | Branches                | Functions                 | Lines             |
+| --------------------------- | ----------------------- | ------------------------- | ----------------- |
+| ![Statements](https://img.shields.io/badge/statements-100%25-brightgreen.svg?style=flat) | ![Branches](https://img.shields.io/badge/branches-100%25-brightgreen.svg?style=flat) | ![Functions](https://img.shields.io/badge/functions-100%25-brightgreen.svg?style=flat) | ![Lines](https://img.shields.io/badge/lines-100%25-brightgreen.svg?style=flat) |
 #### Scratch-log-sender offers functions to collect user actions in [Scratch](https://github.com/LLK/) and send them to an endpoint like [scratch-log-endpoint](https://github.com/goessm/scratch-log-endpoint).
 
 It can be used in scratch-gui, without changes to scratch-vm.\
