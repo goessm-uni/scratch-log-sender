@@ -61,13 +61,15 @@ const logListenEvent = function (event, blocks) {
 };
 
 /**
- * Log control events like greenFlag and stopAll
+ * Log control events like greenFlag and stopAll.
+ * Optionally specify sb3 string to save sb3 code state.
  * @param {string} type Event type
+ * @param {Blob | null} sb3 Optional sb3 string blob
  * @param {Runtime} runtime The scratch VM runtime
  */
-const logControlEvent = function (type, runtime) {
-    // console.log(type)
-    this.logUserEvent(type, null, runtime);
+const logControlEvent = function (type, runtime, sb3 = null) {
+    const data = sb3 ? {sb3: sb3} : null // Add sb3 to data if not null
+    this.logUserEvent(type, data, runtime);
 }
 
 /**
