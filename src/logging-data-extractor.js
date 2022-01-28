@@ -128,7 +128,7 @@ const extractUi = function (event, blocks) {
 /**
  * Extract data from a comment event.
  * @param {BlockEvent} event Will only act on Comment events.
- * @param {Blocks} _blocks The Blocks object where the event occurred.
+ * @param {Blocks} blocks The Blocks object where the event occurred.
  */
 const extractComment = function (event, blocks) {
     if (!event.type.startsWith('comment')) return null
@@ -267,11 +267,10 @@ const _getBlocksFromXML = function (xml) {
 }
 
 /**
- * Extracts the desired data from the current state of the Scratch runtime.
- * This includes all blocks on all sprites, but not all data needed to load the project.
- * It is meant to take up less space than a full json or sb3 save, while also being a searchable object.
+ * Extracts only the desired data from the current state of the Scratch runtime.
  *
- * This function could be replaced with a compressed version of vm.toJSON to get a loadable json.
+ * This function is no longer used and may be removed.
+ * Replaced by vm.toJSON for full json string of runtime.
  *
  * @param {Runtime} runtime The Scratch VM runtime.
  * @returns {[]} Array of Sprite objects containing the _blocks block state.

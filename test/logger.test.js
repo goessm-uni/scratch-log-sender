@@ -80,8 +80,8 @@ describe('.loglistenEvent', () => {
         const logUserEventFake = sinon.fake()
         sinon.replace(logger, 'logUserEvent', logUserEventFake)
 
-        logger.logListenEvent(validEvent, fakeBlocks)
-        sinon.assert.calledWith(logUserEventFake, 'testEvent', {}, {})
+        logger.logListenEvent(validEvent, fakeBlocks, '')
+        sinon.assert.calledWith(logUserEventFake, 'testEvent', {}, '')
     });
     it('should not call logUserEvent if event is seen as noise', () => {
         const denoiser = require('../src/denoiser')
@@ -96,7 +96,7 @@ describe('.loglistenEvent', () => {
         const logUserEventFake = sinon.fake()
         sinon.replace(logger, 'logUserEvent', logUserEventFake)
 
-        logger.logListenEvent(validEvent, fakeBlocks)
+        logger.logListenEvent(validEvent, fakeBlocks, '')
         sinon.assert.notCalled(logUserEventFake)
     });
     it('should not call logUserEvent if event has ignored type', () => {
@@ -112,7 +112,7 @@ describe('.loglistenEvent', () => {
         const logUserEventFake = sinon.fake()
         sinon.replace(logger, 'logUserEvent', logUserEventFake)
 
-        logger.logListenEvent(validEvent, fakeBlocks)
+        logger.logListenEvent(validEvent, fakeBlocks, '')
         sinon.assert.notCalled(logUserEventFake)
     });
 });
@@ -124,12 +124,12 @@ describe('.logUserEvent', () => {
         eventLog.length = 0
     });
     it('should add given event to eventLog', () => {
-        logger.logUserEvent('testType', {}, {})
+        logger.logUserEvent('testType', {}, 'testString')
         const eventLog = logger.getEventLog()
         assert.equals(eventLog.length, 1)
-        sinon.assert.match(eventLog[0], {type: 'testType', data: {}})
+        sinon.assert.match(eventLog[0], {type: 'testType', data: {}, codeState: {json: 'testString'}})
     });
-    it('should set codeState to null if runtime is null', () => {
+    it('should set codeState to null if json is null', () => {
         logger.logUserEvent('testType', {}, null)
         const eventLog = logger.getEventLog()
         sinon.assert.match(eventLog[0], {type: 'testType', data: {}, codeState: null})
@@ -143,23 +143,12 @@ describe('.logUserEvent', () => {
 });
 
 describe('.logControlEvent', () => {
-    context('called without projectJSON param', () => {
-        it('should call logUserEvent with params and null data', () => {
-            const logUserEventFake = sinon.fake()
-            sinon.replace(logger, 'logUserEvent', logUserEventFake)
-
-            logger.logControlEvent('testType', {})
-            sinon.assert.calledWith(logUserEventFake, 'testType', null, {})
-        });
-    });
-    context('called with projectJSON param', () => {
-        it('should call logUserEvent with params and json data', () => {
-            const logUserEventFake = sinon.fake()
-            sinon.replace(logger, 'logUserEvent', logUserEventFake)
-
-            logger.logControlEvent('testType', {}, 'testString')
-            sinon.assert.calledWith(logUserEventFake, 'testType', sinon.match({json: sinon.match.string}), {})
-        });
+    it('should just call logUserEvent', () => {
+        const logUserEventFake = sinon.fake()
+        sinon.replace(logger, 'logUserEvent', logUserEventFake)
+        const testString = 'testString'
+        logger.logControlEvent('testType', {}, testString)
+        sinon.assert.calledWith(logUserEventFake, 'testType', {}, testString)
     });
 });
 
@@ -168,8 +157,8 @@ describe('.logGuiEvent', () => {
         const logUserEventFake = sinon.fake()
         sinon.replace(logger, 'logUserEvent', logUserEventFake)
 
-        logger.logGuiEvent('testType', {}, {})
-        sinon.assert.calledWith(logUserEventFake, 'testType', {}, {})
+        logger.logGuiEvent('testType', {})
+        sinon.assert.calledWith(logUserEventFake, 'testType', {}, null)
     });
     context('type contains change', () => {
         it('should call logUserEvent only once for rapid changes', () => {
@@ -177,9 +166,9 @@ describe('.logGuiEvent', () => {
             const logUserEventFake = sinon.fake()
             sinon.replace(logger, 'logUserEvent', logUserEventFake)
 
-            logger.logGuiEvent('testType_change', {target: 'target', property: 'property'}, {})
-            logger.logGuiEvent('testType_change', {target: 'target', property: 'property'}, {})
-            logger.logGuiEvent('testType_change', {target: 'target', property: 'property'}, {})
+            logger.logGuiEvent('testType_change', {target: 'target', property: 'property'})
+            logger.logGuiEvent('testType_change', {target: 'target', property: 'property'})
+            logger.logGuiEvent('testType_change', {target: 'target', property: 'property'})
             clock.tick(1000)
             clock.uninstall()
             sinon.assert.calledOnce(logUserEventFake)
@@ -193,7 +182,7 @@ describe('.logCostumeEvent', () => {
         sinon.replace(logger, 'logGuiEvent', logGuiEventFake)
 
         logger.logCostumeEvent('testType', {}, {})
-        sinon.assert.calledWith(logGuiEventFake, 'testType', {}, {})
+        sinon.assert.calledWith(logGuiEventFake, 'testType', {})
     });
     it('should replace costume with backdrop in type name if target is stage', () => {
         const logGuiEventFake = sinon.fake()
@@ -212,7 +201,7 @@ describe('.logSpriteChange', () => {
         const logGuiEventFake = sinon.fake()
         sinon.replace(logger, 'logGuiEvent', logGuiEventFake)
 
-        logger.logSpriteChange('spriteId', 'property', 'newValue', {})
+        logger.logSpriteChange('spriteId', 'property', 'newValue')
         clock.tick(1000)
         clock.uninstall()
         sinon.assert.calledWith(logGuiEventFake, sinon.match('sprite_change'))
