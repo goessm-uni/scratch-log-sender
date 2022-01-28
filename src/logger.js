@@ -68,8 +68,19 @@ const logListenEvent = function (event, blocks) {
  * @param {Runtime} runtime The scratch VM runtime
  */
 const logControlEvent = function (type, runtime, sb3 = null) {
-    const data = sb3 ? {sb3: sb3} : null // Add sb3 to data if not null
-    this.logUserEvent(type, data, runtime);
+    if (sb3) {
+        // If sb3 blob is given, convert contents to string and store in data
+        const reader = new FileReader();
+        reader.onloadend = function () {
+            let sb3String = reader.result.split(',').pop(); // Remove data:...;base64, from start of string
+            const data = {sb3: sb3String};
+            this.logUserEvent(type, data, runtime);
+        }.bind(this);
+        reader.readAsDataURL(sb3);
+        this.logUserEvent(type, {sb3: sb3}, runtime);
+    } else {
+        this.logUserEvent(type, null, runtime);
+    }
 }
 
 /**
