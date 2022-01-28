@@ -138,7 +138,6 @@ const logSpriteChange = function (spriteId, property, newValue, runtime) {
  * Send current log buffer over websocket connection
  */
 const sendLog = function () {
-    console.log('sending log')
     if (eventLog.length === 0 && sendBuffer.length === 0) return;
     if (!ws.isOpen()) {
         // console.log('tried to send log, but ws connection not ready.');

@@ -134,15 +134,32 @@ describe('.logUserEvent', () => {
         const eventLog = logger.getEventLog()
         sinon.assert.match(eventLog[0], {type: 'testType', data: {}, codeState: null})
     });
+    it('should call sendLog on greenFlag event', () => {
+        const sendLogFake = sinon.fake()
+        sinon.replace(logger, 'sendLog', sendLogFake)
+        logger.logUserEvent('greenFlag', {}, null)
+        sinon.assert.called(sendLogFake)
+    });
 });
 
 describe('.logControlEvent', () => {
-    it('should call logUserEvent with params and null data', () => {
-        const logUserEventFake = sinon.fake()
-        sinon.replace(logger, 'logUserEvent', logUserEventFake)
+    context('called without projectJSON param', () => {
+        it('should call logUserEvent with params and null data', () => {
+            const logUserEventFake = sinon.fake()
+            sinon.replace(logger, 'logUserEvent', logUserEventFake)
 
-        logger.logControlEvent('testType', {})
-        sinon.assert.calledWith(logUserEventFake, 'testType', null, {})
+            logger.logControlEvent('testType', {})
+            sinon.assert.calledWith(logUserEventFake, 'testType', null, {})
+        });
+    });
+    context('called with projectJSON param', () => {
+        it('should call logUserEvent with params and json data', () => {
+            const logUserEventFake = sinon.fake()
+            sinon.replace(logger, 'logUserEvent', logUserEventFake)
+
+            logger.logControlEvent('testType', {}, 'testString')
+            sinon.assert.calledWith(logUserEventFake, 'testType', sinon.match({json: sinon.match.string}), {})
+        });
     });
 });
 
