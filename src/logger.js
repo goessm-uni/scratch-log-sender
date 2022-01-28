@@ -18,7 +18,7 @@ let sendBuffer = [];
  */
 const logUserEvent = function (eventType, eventData, runtime) {
     const time = new Date().getTime();
-    const actionLog = {
+    const logItem = {
         timestamp: time,
         userId: ws.getUserId(),
         taskId: ws.getTaskId(),
@@ -26,9 +26,13 @@ const logUserEvent = function (eventType, eventData, runtime) {
         data: eventData,
         codeState: runtime ? extractor.extractCodeState(runtime) : null
     };
-    console.log(`logging user action: ${eventType}`);
-    console.log(actionLog)
-    eventLog.push(actionLog);
+    console.log(`logging user action: ${logItem.type}`);
+    console.log(logItem);
+    eventLog.push(logItem);
+
+    if (logItem.type === 'greenFlag') {
+        this.sendLog();
+    }
 };
 
 // List of block event types that are ignored by the logger.
@@ -134,6 +138,7 @@ const logSpriteChange = function (spriteId, property, newValue, runtime) {
  * Send current log buffer over websocket connection
  */
 const sendLog = function () {
+    console.log('sending log')
     if (eventLog.length === 0 && sendBuffer.length === 0) return;
     if (!ws.isOpen()) {
         // console.log('tried to send log, but ws connection not ready.');
