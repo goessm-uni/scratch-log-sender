@@ -64,10 +64,14 @@ const logListenEvent = function (event, blocks) {
  * Log control events like greenFlag and stopAll
  * @param {string} type Event type
  * @param {Runtime} runtime The scratch VM runtime
+ * @param {String | null} projectJSON Optional current project.json string, specify to save json state.
  */
-const logControlEvent = function (type, runtime) {
-    // console.log(type)
-    this.logUserEvent(type, null, runtime);
+const logControlEvent = function (type, runtime, projectJSON = null) {
+    if (projectJSON) {
+        this.logUserEvent(type, {json: projectJSON}, runtime);
+    } else {
+        this.logUserEvent(type, null, runtime);
+    }
 }
 
 /**

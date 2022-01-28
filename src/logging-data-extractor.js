@@ -268,6 +268,10 @@ const _getBlocksFromXML = function (xml) {
 
 /**
  * Extracts the desired data from the current state of the Scratch runtime.
+ * This includes all blocks on all sprites, but not all data needed to load the project.
+ * It is meant to take up less space than a full json or sb3 save, while also being a searchable object.
+ *
+ * This function could be replaced with a compressed version of vm.toJSON to get a loadable json.
  *
  * @param {Runtime} runtime The Scratch VM runtime.
  * @returns {[]} Array of Sprite objects containing the _blocks block state.
