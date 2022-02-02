@@ -44,7 +44,7 @@ const eventIsNoise = function (event, blocks) {
  * This can be useful when events are called many times in a row,
  * e.g. by gui selectors, where only the final value is relevant for the log.
  * @param {string} identifier A String that is the same for all calls that should be
- *     batched. You could use JSON.stringify({func: function.name, constantParam: constantParam}.
+ *     batched. You could use JSON.stringify({func: function.name, constantParam: constantParam}).
  * @param {number} batchWindow Time in milliseconds to wait before sending batch
  * @param {function} func The function to call, no params, use arrow function for complex calls.
  */

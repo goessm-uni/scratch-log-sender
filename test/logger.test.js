@@ -84,9 +84,7 @@ describe('.loglistenEvent', () => {
         sinon.assert.calledWith(logUserEventFake, 'testEvent', {}, '')
     });
     it('should not call logUserEvent if event is seen as noise', () => {
-        const denoiser = require('../src/denoiser')
         sinon.replace(denoiser, 'eventIsNoise', sinon.fake.returns(true))
-        const extractor = require('../src/logging-data-extractor')
         sinon.replace(extractor, 'extractEventData', sinon.fake.returns(
             {
                 eventType: 'testEvent',
@@ -100,9 +98,7 @@ describe('.loglistenEvent', () => {
         sinon.assert.notCalled(logUserEventFake)
     });
     it('should not call logUserEvent if event has ignored type', () => {
-        const denoiser = require('../src/denoiser')
         sinon.replace(denoiser, 'eventIsNoise', sinon.fake.returns(false))
-        const extractor = require('../src/logging-data-extractor')
         sinon.replace(extractor, 'extractEventData', sinon.fake.returns(
             {
                 eventType: 'ui_click', // ignored type
@@ -111,9 +107,29 @@ describe('.loglistenEvent', () => {
         ))
         const logUserEventFake = sinon.fake()
         sinon.replace(logger, 'logUserEvent', logUserEventFake)
-
-        logger.logListenEvent(validEvent, fakeBlocks, '')
+        const clickEvent = {...validEvent, type: 'ui_click'} // Clone but change type
+        logger.logListenEvent(clickEvent, fakeBlocks, '')
         sinon.assert.notCalled(logUserEventFake)
+    });
+    it('should batch rapid change event together', () => {
+        sinon.replace(denoiser, 'eventIsNoise', sinon.fake.returns(false))
+        sinon.replace(extractor, 'extractEventData', sinon.fake.returns(
+            {
+                eventType: 'change',
+                eventData: {}
+            }
+        ))
+        const logUserEventFake = sinon.fake()
+        sinon.replace(logger, 'logUserEvent', logUserEventFake)
+        const changeEvent = {...validEvent, type: 'change'} // Clone but change type
+        const clock = FakeTimers.install()
+        // Call multiple times quickly
+        logger.logListenEvent(changeEvent, fakeBlocks, '')
+        logger.logListenEvent(changeEvent, fakeBlocks, '')
+        logger.logListenEvent(changeEvent, fakeBlocks, '')
+        clock.tick(2000)
+        clock.uninstall()
+        sinon.assert.calledOnce(logUserEventFake)
     });
 });
 
@@ -165,7 +181,6 @@ describe('.logGuiEvent', () => {
             const clock = FakeTimers.install()
             const logUserEventFake = sinon.fake()
             sinon.replace(logger, 'logUserEvent', logUserEventFake)
-
             logger.logGuiEvent('testType_change', {target: 'target', property: 'property'})
             logger.logGuiEvent('testType_change', {target: 'target', property: 'property'})
             logger.logGuiEvent('testType_change', {target: 'target', property: 'property'})

@@ -49,20 +49,25 @@ const ignoredBlockEventTypes = [
  */
 const logListenEvent = function (event, blocks, jsonString) {
     if (denoiser.eventIsNoise(event, blocks)) {
-        // Event is considered noise, ignore
-        return;
+        return; // Event is considered noise, ignore
     }
+    // Get event type and relevant data using extractor
     const extractionResult = extractor.extractEventData(event, blocks);
 
     if (ignoredBlockEventTypes.includes(extractionResult.eventType)) {
-        // Ignored event type
-        return;
+        return; // Ignored event type
     }
-    // console.log(event.type)
-    console.log(event)
 
-    // Use this to call the exported property instead of function directly, allows stubbing in tests
-    this.logUserEvent(extractionResult.eventType, extractionResult.eventData, jsonString);
+    if (extractionResult.eventType === 'change') {
+        // Batch rapid change events together
+        const batchWindow = 800;
+        const funcId = JSON.stringify({func: logUserEvent.name, blockId: extractionResult.blockId});
+        denoiser.callBatched(funcId, batchWindow, () => {
+            this.logUserEvent(extractionResult.eventType, extractionResult.eventData, jsonString);
+        });
+    } else {
+        this.logUserEvent(extractionResult.eventType, extractionResult.eventData, jsonString);
+    }
 };
 
 /**
@@ -92,9 +97,9 @@ const logGuiEvent = function (type, data) {
     // Batch change events together to prevent event spam by selectors, and the blur-bug.
     const batchWindow = 400;
     if (type.includes('change')) {
-        const funcIdentifier = JSON.stringify({func: logUserEvent.name, target: data.target, prop: data.property})
-        denoiser.callBatched(funcIdentifier, batchWindow, () => {
-            this.logUserEvent(type, data, null)
+        const funcId = JSON.stringify({func: logUserEvent.name, target: data.target, prop: data.property});
+        denoiser.callBatched(funcId, batchWindow, () => {
+            this.logUserEvent(type, data, null);
         });
     } else {
         // No batching, just call logUserEvent.
