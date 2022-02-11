@@ -2,24 +2,24 @@ const logger = require('./src/logger');
 const loggingWs = require('./src/logging-websocket')
 const vmListener = require('./src/virtual-machine-listener')
 
-const selfStarting = true;
-const sendDelay = 10000; // 10 seconds
-const wsUrl = 'wss://endpoint.example.com/logging' // Add your endpoint url here
+let sendInterval;
 
-let sendInterval
-
-const initConnection = function() {
+/**
+ * Connect to given websocket.
+ * Websocket automatically reconnects on close.
+ * Log ist sent over websocket every sendDelay ms.
+ * @param {string} wsUrl The websocket URL to connect to
+ * @param {number} sendDelay Log gets sent every sendDelay ms
+ */
+const connect = function(wsUrl, sendDelay) {
     loggingWs.connectWebSocket(wsUrl);
     /* Send log every interval */
     clearInterval(sendInterval)
     sendInterval = setInterval(logger.sendLog, sendDelay);
 };
 
-// This module connects to the logging endpoint automatically on load,
-// and sends the current log every few seconds over websocket.
-if (selfStarting) initConnection();
-
 module.exports = {
+    connect: connect,
     logListenEvent: logger.logListenEvent,
     logUserEvent: logger.logUserEvent,
     logControlEvent: logger.logControlEvent,
