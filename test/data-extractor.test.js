@@ -203,6 +203,21 @@ describe('.extractEventData()', () => {
             const extractionResult = extractEventData(eventNoElement, fakeBlocks)
             assert.equals(extractionResult.eventType, eventNoElement.type)
         });
+        context('on ui_selected event', () => {
+            it('should set blockId and blockType if newValue is set', () => {
+                const expectedId = '1'
+                const selectedEvent = {
+                    type: 'ui',
+                    blockId: null,
+                    element: 'selected',
+                    newValue: expectedId,
+                    oldValue: 'oldValue'
+                }
+                const extractionResult = extractEventData(selectedEvent, fakeBlocks)
+                assert.equals(extractionResult.eventData.blockId, expectedId)
+                assert.equals(extractionResult.eventData.blockType, fakeBlocks.getBlock().opcode)
+            });
+        });
     });
 
     context('on Comment Event', () => {
