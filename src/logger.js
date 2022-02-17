@@ -60,11 +60,8 @@ const logListenEvent = function (event, blocks, jsonString) {
 
     if (extractionResult.eventType === 'change') {
         // Batch rapid change events together
-        const batchWindow = 800;
-        const funcId = JSON.stringify({func: logUserEvent.name, blockId: extractionResult.blockId});
-        denoiser.callBatched(funcId, batchWindow, () => {
-            this.logUserEvent(extractionResult.eventType, extractionResult.eventData, jsonString);
-        });
+        const batchId = {type: extractionResult.eventType, blockId: extractionResult.eventData.blockId}
+        _logUserEventBatched(extractionResult.eventType, extractionResult.eventData, jsonString, batchId, 800);
     } else {
         this.logUserEvent(extractionResult.eventType, extractionResult.eventData, jsonString);
     }
@@ -95,12 +92,9 @@ const logGuiEvent = function (type, data) {
     // Here this get handled by batching, so we don't have to worry about it.
 
     // Batch change events together to prevent event spam by selectors, and the blur-bug.
-    const batchWindow = 400;
     if (type.includes('change')) {
-        const funcId = JSON.stringify({func: logUserEvent.name, target: data.target, prop: data.property});
-        denoiser.callBatched(funcId, batchWindow, () => {
-            this.logUserEvent(type, data, null);
-        });
+        const batchId = {type: type, target: data.target, prop: data.property}
+        _logUserEventBatched(type, data, null, batchId, 400);
     } else {
         // No batching, just call logUserEvent.
         this.logUserEvent(type, data, null);
@@ -156,6 +150,23 @@ const sendLog = function () {
 
 const getEventLog = function () {
     return eventLog;
+};
+
+/**
+ * Calls logUserEvent using denoiser.callBatched to batch together rapid calls.
+ * @param {string} eventType String description of event type
+ * @param {object} eventData Additional event data
+ * @param {string | null} jsonString Optional string representation of the scratch runtime (code state)
+ * @param {object} batchId Calls with same batchId object get batched together. Gets JSON.stringify()-ed.
+ * @param batchWindow Time in ms for batch window
+ * @private
+ */
+const _logUserEventBatched = function (eventType, eventData, jsonString, batchId, batchWindow) {
+    batchId.function = 'logUserEvent'
+    batchId = JSON.stringify(batchId)
+    denoiser.callBatched(batchId, batchWindow, () => {
+        module.exports.logUserEvent(eventType, eventData, jsonString);
+    });
 };
 
 module.exports = {
