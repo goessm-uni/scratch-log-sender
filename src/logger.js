@@ -112,7 +112,6 @@ const logGuiEvent = function (type, data) {
  * @param {String} type
  * @param {Object} data
  * @param {Runtime} runtime
- * @param {string} jsonString String representation of the serialized scratch runtime
  */
 const logCostumeEvent = function (type, data, runtime) {
     // Sprite and Stage are both Targets.

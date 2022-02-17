@@ -1,6 +1,6 @@
 {
   "name": "scratch-log-sender",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Takes Scratch events, extracts relevant data and sends it to a logging endpoint.",
   "main": "index.js",
   "scripts": {

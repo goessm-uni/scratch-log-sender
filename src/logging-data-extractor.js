@@ -231,7 +231,7 @@ const _getBlocksFromXML = function (xml) {
 
     // Get data of head block.
     const mainBlock = html_doc.children[0]
-    if (mainBlock.name !== 'block') return null
+    if (mainBlock.name !== 'block' && mainBlock.name !== 'shadow') return null
     const result = {
         blockId: mainBlock.attribs?.id,
         blockType: mainBlock.attribs?.type,
