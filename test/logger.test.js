@@ -140,10 +140,10 @@ describe('.logUserEvent', () => {
         eventLog.length = 0
     });
     it('should add given event to eventLog', () => {
-        logger.logUserEvent('testType', {}, 'testString')
+        logger.logUserEvent('testType', {}, 'testString', 1)
         const eventLog = logger.getEventLog()
         assert.equals(eventLog.length, 1)
-        sinon.assert.match(eventLog[0], {type: 'testType', data: {}, codeState: {json: 'testString'}})
+        sinon.assert.match(eventLog[0], {type: 'testType', data: {}, codeState: {json: 'testString'}, timestamp: 1})
     });
     it('should set codeState to null if json is null', () => {
         logger.logUserEvent('testType', {}, null)
@@ -155,6 +155,11 @@ describe('.logUserEvent', () => {
         sinon.replace(logger, 'sendLog', sendLogFake)
         logger.logUserEvent('greenFlag', {}, null)
         sinon.assert.called(sendLogFake)
+    });
+    it('should add time if no time is given', () => {
+        logger.logUserEvent('testType', {}, 'testString')
+        const eventLog = logger.getEventLog()
+        assert.isNumber(eventLog[0].timestamp)
     });
 });
 

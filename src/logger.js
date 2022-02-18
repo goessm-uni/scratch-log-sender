@@ -6,6 +6,8 @@ const ws = require('./logging-websocket');
 const extractor = require('./logging-data-extractor');
 const denoiser = require('./denoiser');
 
+const blockChangeBatching = 800; // Batch together rapid block changes withing this many ms
+const guiChangeBatching = 400; // Batch together rapid gui changes withing this many ms
 const eventLog = [];
 
 let sendBuffer = [];
@@ -15,9 +17,10 @@ let sendBuffer = [];
  * @param {string} eventType String description of event type
  * @param {object} eventData Additional event data
  * @param {string | null} jsonString Optional string representation of the scratch runtime (code state)
+ * @param {?number} [time]
  */
-const logUserEvent = function (eventType, eventData, jsonString) {
-    const time = new Date().getTime();
+const logUserEvent = function (eventType, eventData, jsonString, time = null) {
+    if (time == null) time = new Date().getTime();
     const logItem = {
         timestamp: time,
         userId: ws.getUserId(),
@@ -53,17 +56,19 @@ const logListenEvent = function (event, blocks, jsonString) {
     }
     // Get event type and relevant data using extractor
     const extractionResult = extractor.extractEventData(event, blocks);
+    const eventType = extractionResult.eventType;
+    const eventData = extractionResult.eventData;
 
-    if (ignoredBlockEventTypes.includes(extractionResult.eventType)) {
+    if (ignoredBlockEventTypes.includes(eventType)) {
         return; // Ignored event type
     }
 
-    if (extractionResult.eventType === 'change') {
+    if (eventType === 'change') {
         // Batch rapid change events together
-        const batchId = {type: extractionResult.eventType, blockId: extractionResult.eventData.blockId}
-        _logUserEventBatched(extractionResult.eventType, extractionResult.eventData, jsonString, batchId, 800);
+        const batchId = {type: eventType, blockId: eventData.blockId}
+        _logUserEventBatched(eventType, eventData, jsonString, batchId, blockChangeBatching);
     } else {
-        this.logUserEvent(extractionResult.eventType, extractionResult.eventData, jsonString);
+        this.logUserEvent(eventType, eventData, jsonString);
     }
 };
 
@@ -94,7 +99,7 @@ const logGuiEvent = function (type, data) {
     // Batch change events together to prevent event spam by selectors, and the blur-bug.
     if (type.includes('change')) {
         const batchId = {type: type, target: data.target, prop: data.property}
-        _logUserEventBatched(type, data, null, batchId, 400);
+        _logUserEventBatched(type, data, null, batchId, guiChangeBatching);
     } else {
         // No batching, just call logUserEvent.
         this.logUserEvent(type, data, null);
@@ -162,10 +167,11 @@ const getEventLog = function () {
  * @private
  */
 const _logUserEventBatched = function (eventType, eventData, jsonString, batchId, batchWindow) {
-    batchId.function = 'logUserEvent'
-    batchId = JSON.stringify(batchId)
+    batchId.function = 'logUserEvent';
+    batchId = JSON.stringify(batchId);
+    const time = new Date().getTime();
     denoiser.callBatched(batchId, batchWindow, () => {
-        module.exports.logUserEvent(eventType, eventData, jsonString);
+        module.exports.logUserEvent(eventType, eventData, jsonString, time);
     });
 };
 
