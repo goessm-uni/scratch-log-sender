@@ -7,6 +7,8 @@ const denoiser = require('../src/denoiser')
 const extractor = require('../src/logging-data-extractor')
 const {fakeBlocks} = require('./fixtures/scratch-fixtures')
 
+const batchWindow = 1000;
+
 describe('.sendLog', () => {
     const testAction = {
         timestamp: 0,
@@ -127,7 +129,7 @@ describe('.loglistenEvent', () => {
         logger.logListenEvent(changeEvent, fakeBlocks, '')
         logger.logListenEvent(changeEvent, fakeBlocks, '')
         logger.logListenEvent(changeEvent, fakeBlocks, '')
-        clock.tick(2000)
+        clock.tick(batchWindow * 1.5)
         clock.uninstall()
         sinon.assert.calledOnce(logUserEventFake)
     });
@@ -189,7 +191,7 @@ describe('.logGuiEvent', () => {
             logger.logGuiEvent('testType_change', {target: 'target', property: 'property'})
             logger.logGuiEvent('testType_change', {target: 'target', property: 'property'})
             logger.logGuiEvent('testType_change', {target: 'target', property: 'property'})
-            clock.tick(1000)
+            clock.tick(batchWindow * 1.5)
             clock.uninstall()
             sinon.assert.calledOnce(logUserEventFake)
         });
@@ -222,7 +224,7 @@ describe('.logSpriteChange', () => {
         sinon.replace(logger, 'logGuiEvent', logGuiEventFake)
 
         logger.logSpriteChange('spriteId', 'property', 'newValue')
-        clock.tick(1000)
+        clock.tick(batchWindow * 1.5)
         clock.uninstall()
         sinon.assert.calledWith(logGuiEventFake, sinon.match('sprite_change'))
     });
