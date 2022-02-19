@@ -133,7 +133,7 @@ const logCostumeEvent = function (type, data, runtime) {
  * @param {string} jsonString String representation of the serialized scratch runtime
  */
 const logSpriteChange = function (spriteId, property, newValue) {
-    this.logGuiEvent('sprite_change', { spriteId: spriteId, property: property, newValue: newValue });
+    this.logGuiEvent('sprite_change', { target: spriteId, property: property, newValue: newValue });
 }
 
 /**
