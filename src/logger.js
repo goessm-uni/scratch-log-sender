@@ -6,8 +6,8 @@ const ws = require('./logging-websocket');
 const extractor = require('./logging-data-extractor');
 const denoiser = require('./denoiser');
 
-const blockChangeBatching = 800; // Batch together rapid block changes withing this many ms
-const guiChangeBatching = 400; // Batch together rapid gui changes withing this many ms
+const blockChangeBatching = 1000; // Batch together rapid block changes withing this many ms
+const guiChangeBatching = 1000; // Batch together rapid gui changes withing this many ms
 const eventLog = [];
 
 let sendBuffer = [];
